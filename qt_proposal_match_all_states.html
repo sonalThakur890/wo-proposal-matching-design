@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Qualify Ticket · Proposal Match</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --nav:#123A5E;--nav-brd:#EE7127;--brand:#0F4E82;--brand-dark:#0B3D68;--link:#1C6BBA;
+    --orange:#EE7127;--orange-2:#E8590C;--heading-blue:#1A5296;
+    --ink:#1F2933;--ink-2:#465565;--muted:#6B7784;--faint:#8B98A6;
+    --line:#E3E8EF;--line-2:#EEF2F6;--canvas:#F4F6F8;--panel-head:#F3F5F7;--card:#fff;
+    --amber:#B26A00;--amber-bg:#FFF6E9;--amber-brd:#F3DcAF;
+    --green:#2E7D32;--green-bg:#EEF8EF;--green-brd:#C4E4C6;
+    --chip-blue-bg:#E9F1FB;--chip-blue:#1A5296;--sel-bg:#F0F6FC;
+    --radius:12px;--f-head:'Poppins','Segoe UI',sans-serif;--f-body:'Inter','Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);font-family:var(--f-body);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px}
+  a{color:var(--link);text-decoration:none}button{font-family:inherit;cursor:pointer}
+  .hidden{display:none!important}
+
+  /* review switcher (not part of product) */
+  .switch{position:sticky;top:0;z-index:80;background:#0E1726;color:#fff;padding:8px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .switch .tt{font-weight:600;font-size:12.5px;color:#AEBCCB}
+  .switch .seg{display:flex;gap:2px;background:rgba(255,255,255,.06);border-radius:9px;padding:3px;flex-wrap:wrap}
+  .switch .seg button{background:transparent;border:0;color:#C3CCD8;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:7px}
+  .switch .seg button.on{background:#fff;color:#0E1726}
+
+  .nav{height:64px;background:var(--nav);border-bottom:3px solid var(--nav-brd);display:flex;align-items:center;gap:18px;padding:0 22px;color:#fff}
+  .nav .logo{font-family:var(--f-head);font-weight:700;font-size:19px;letter-spacing:.5px}.nav .logo sup{font-size:9px;background:rgba(255,255,255,.2);padding:1px 4px;border-radius:3px}
+  .nav .grow{flex:1}
+  .nav .btn-data{background:var(--link);color:#fff;border:0;border-radius:7px;padding:8px 14px;font-weight:600;font-size:12.5px}
+  .nav .who{text-align:center;line-height:1.25}.nav .who .n{font-family:var(--f-head);font-weight:600;font-size:14px}.nav .who .r{font-size:11.5px;color:#B9CBDD}
+  .nav .hours{background:#fff;color:var(--green);border-radius:8px;padding:7px 12px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px}.nav .hours::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .nav .lnk{color:#E8EFF6;font-size:13px}.nav .bell{position:relative}.nav .bell .cnt{position:absolute;top:-7px;right:-9px;background:#E23B3B;color:#fff;font-size:9px;font-weight:700;border-radius:20px;padding:1px 5px}
+
+  .shell{display:flex}
+  .rail{width:56px;background:var(--card);border-right:1px solid var(--line);min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;padding-top:12px;gap:16px;color:var(--nav)}
+  .rail .i{width:22px;height:22px;opacity:.7;font-size:15px;display:flex;align-items:center;justify-content:center}.rail .i.on{opacity:1;color:var(--brand);position:relative}.rail .i.on::before{content:"";position:absolute;left:-17px;width:3px;height:26px;background:var(--brand);border-radius:2px}
+  .main{flex:1;padding:20px 26px 60px;max-width:1580px}
+
+  .crumbs{display:flex;align-items:center;gap:10px;margin-bottom:16px}.crumbs .c{color:var(--muted);font-size:15px}.crumbs .c b{color:var(--ink)}
+  .chip{font-size:12px;font-weight:600;padding:4px 11px;border-radius:20px}.chip.route{background:var(--chip-blue-bg);color:var(--chip-blue)}
+  .crumbs .grow{flex:1}.btn-raise{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-weight:600}.kebab{color:var(--muted);font-size:20px;background:none;border:0}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+  .thead{display:flex;padding:20px 24px}
+  .thead .prop{width:340px;border-right:1px solid var(--line);padding-right:20px}.thead .prop .pn{font-family:var(--f-head);font-weight:700;font-size:20px}.thead .prop .pn span{color:var(--faint);font-weight:600;font-size:14px}.thead .prop .addr{color:var(--ink-2);font-size:13.5px;margin-top:8px}
+  .thead .grid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:18px 20px;padding-left:24px}
+  .kv .k{font-size:12.5px;color:var(--muted);font-weight:600}.kv .v{font-size:14.5px;font-weight:600;margin-top:3px}.kv .v.lnk{color:var(--link)}
+  .scope{border-top:1px solid var(--line);padding:16px 24px}.scope .k{font-weight:700;font-size:14px;margin-bottom:6px}.scope .txt{color:var(--ink-2);font-size:13.5px;line-height:1.6}.scope .more{color:var(--link);font-weight:600;margin-top:8px;display:inline-block}
+
+  .body{display:grid;grid-template-columns:minmax(340px,520px) 1fr;gap:20px;margin-top:20px;align-items:start}
+  .tabs{display:flex;border-bottom:1px solid var(--line)}.tabs .t{flex:1;text-align:center;padding:15px;color:var(--muted);font-size:16px;border-bottom:2px solid transparent}.tabs .t.on{color:var(--brand);border-bottom-color:var(--brand)}
+  .tdetails{padding:20px 22px}.tdetails h3{font-family:var(--f-head);color:var(--heading-blue);font-size:19px;margin:0 0 16px}
+  .drow{margin-bottom:15px}.drow .k{font-weight:700;font-size:13.5px}.drow .v{color:var(--ink-2);font-size:13.5px;margin-top:3px}
+  .sub .srow{display:flex;gap:10px;margin:8px 0;color:var(--ink-2);font-size:13.5px}.sub .srow .lbl{font-weight:700;color:var(--ink);min-width:110px}
+
+  .qcard{overflow:hidden}
+  .qhead{background:var(--panel-head);padding:18px 22px;border-bottom:1px solid var(--line)}
+  .qhead .row1{display:flex;align-items:center}.qhead h2{font-family:var(--f-head);font-weight:600;font-size:19px;margin:0}
+  .qhead .st{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--link);border:1px solid #BCD3EC;background:#fff;border-radius:20px;padding:4px 11px}
+  .qhead .st.done{color:var(--green);border-color:var(--green-brd);background:var(--green-bg)}.qhead .x{color:var(--muted);background:none;border:0;font-size:18px;margin-left:12px}
+  .qhead .meta{display:flex;gap:60px;margin-top:14px}.qhead .meta .k{color:var(--muted);font-size:13px}.qhead .meta .v{font-weight:600;font-size:13.5px;margin-top:2px}.qhead .meta .v.hi{color:var(--orange-2)}
+  .qdesc{padding:18px 22px;border-bottom:1px solid var(--line)}.qdesc .k{font-weight:700;font-size:14px}.qdesc .v{color:var(--ink-2);margin-top:5px;font-size:13.5px}
+
+  .step{padding:22px;border-bottom:1px solid var(--line);position:relative}
+  .step::before{content:"";position:absolute;left:0;top:22px;bottom:22px;width:4px;background:var(--orange);border-radius:0 3px 3px 0}
+  .step .lab{color:var(--orange);font-weight:600;font-size:13px}.step .row{display:flex;align-items:center}
+  .step h4{font-family:var(--f-head);font-weight:600;font-size:20px;margin:4px 0 2px}.step .caret{margin-left:auto;color:var(--muted)}
+  .step .hint{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+  .field{margin:16px 0}.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:4px}.field label .req{color:#E23B3B}
+  .field .inp{border:0;border-bottom:1px solid var(--line);padding:6px 0;font-size:15px;width:100%;background:none;display:flex;align-items:center}.field .inp.sel::after{content:"⌄";margin-left:auto;color:var(--muted);font-size:18px;line-height:0}
+  .prefilled .inp{color:var(--ink)}
+  .pre-note{font-size:11.5px;color:var(--green);margin-top:5px;display:none;align-items:center;gap:5px}
+  .prefilled .pre-note{display:flex}
+  .q{color:var(--ink);font-size:14.5px;margin:18px 0 8px;font-weight:500}.opts{display:flex;gap:26px;flex-wrap:wrap}
+  .radio{display:flex;align-items:center;gap:9px;color:var(--ink-2);font-size:14px}
+  .dot{width:19px;height:19px;border-radius:50%;border:2px solid var(--faint);position:relative;flex-shrink:0}.radio.on .dot{border-color:var(--brand)}.radio.on .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--brand)}
+  .step-actions{display:flex;justify-content:flex-end;margin-top:18px}
+  .btn{border:0;border-radius:8px;font-weight:600;font-size:14px;padding:10px 18px;display:inline-flex;align-items:center;gap:7px}
+  .btn-primary{background:var(--brand);color:#fff}.btn-primary:hover{background:var(--brand-dark)}.btn-primary:disabled{background:#AFC3D7;cursor:not-allowed}
+  .btn-out{background:#fff;color:var(--brand);border:1px solid #B9CEE3}.btn-out:hover{background:#F1F6FB}
+  .btn-text{background:none;color:var(--ink-2);border:0;font-weight:600}.btn-text:hover{color:var(--ink)}
+  .qdone{padding:20px 22px;display:flex;justify-content:flex-end}.btn-done{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:13px 22px;font-weight:600;font-size:14.5px}
+
+  /* ============ Proposal-match surface (restrained) ============ */
+  .pm{padding:18px 22px;border-bottom:1px solid var(--line)}
+  .pm-head{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+  .pm-ic{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .pm-ic.blue{background:var(--chip-blue-bg);color:var(--brand)}
+  .pm-ic.green{background:var(--green-bg);color:var(--green)}
+  .pm-title{font-family:var(--f-head);font-weight:600;font-size:15.5px}
+  .pm-conf{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:20px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-brd)}
+  .pm-sub{color:var(--muted);font-size:13px;margin:0 0 12px 35px}
+
+  /* single candidate card */
+  .pcard{border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+  .pcard .top{display:flex;align-items:baseline;gap:9px}
+  .prp{font-family:var(--f-head);font-weight:600;font-size:15px}
+  .trade{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--chip-blue-bg);color:var(--chip-blue)}
+  .meta-line{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:500}
+  .scope1{font-size:13px;color:var(--ink-2);margin-top:5px}
+
+  /* selectable list (multiple) */
+  .plist{display:flex;flex-direction:column;gap:8px}
+  .prow{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.12s}
+  .prow:hover{border-color:#BCD3EC;background:#FBFDFF}
+  .prow.sel{border-color:var(--brand);background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--brand)}
+  .prow .dot{margin-top:1px}.prow.sel .dot{border-color:var(--brand)}.prow.sel .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--brand)}
+  .prow .body{flex:1;min-width:0}
+
+  .pm-actions{display:flex;align-items:center;gap:12px;margin-top:16px}
+  .pm-actions .grow{flex:1}
+
+
+  /* auto-linked (high) — quiet single row */
+
+  /* confirmation after action — one quiet line */
+  .confirm{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-2)}
+  .confirm .tick{width:24px;height:24px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-brd);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .confirm.grey .tick{background:var(--line-2);border-color:var(--line);color:var(--muted)}
+  .confirm a{font-weight:600;margin-left:auto}
+
+  /* invisible states — one muted line, honest */
+  .quiet{display:flex;gap:9px;align-items:center;font-size:13px;color:var(--faint)}
+  .quiet .badge{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--muted);background:var(--line-2);border-radius:5px;padding:2px 7px}
+
+  /* ---- auto-linked: linked banner + locked fields ---- */
+  .lbanner{display:flex;align-items:center;gap:13px;border:1px solid var(--green-brd);background:var(--green-bg);border-radius:11px;padding:14px 16px}
+  .lbanner .lic{width:32px;height:32px;border-radius:9px;background:#fff;border:1px solid var(--green-brd);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--green);flex-shrink:0}
+  .lbanner .body{flex:1;min-width:0}
+  .lbanner .l1{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .lbanner .l1 .prp{font-family:var(--f-head);font-weight:600;font-size:15.5px}
+  .lbanner .l1 .status{font-size:10.5px;font-weight:700;letter-spacing:.3px;color:var(--green);background:#fff;border:1px solid var(--green-brd);border-radius:20px;padding:2px 9px}
+  .lbanner .l2{font-size:12.5px;color:var(--ink-2);margin-top:3px}
+  .lbanner a{font-size:12.5px;font-weight:600;white-space:nowrap}
+  .lockhint{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);margin:12px 0 0 2px}
+  .lockhint .k{font-size:13px}
+
+  /* locked qualification treatment */
+  .qcard.locked .step .field .inp{background:#F4F7FA;border-radius:7px 7px 0 0;padding:8px 10px;color:var(--ink-2)}
+  .qcard.locked .step .field .inp.sel::after{opacity:.4}
+  .qcard.locked .step .opts,.qcard.locked .step .field .inp{pointer-events:none}
+  .qcard.locked .step .radio{opacity:.75}
+  .lk{display:none;margin-left:auto;color:var(--faint);font-size:12px}
+  .qcard.locked .lk{display:inline}
+  .frompill{display:none;font-size:10px;font-weight:700;color:var(--green);background:var(--green-bg);border:1px solid var(--green-brd);border-radius:20px;padding:1px 7px;margin-left:8px;vertical-align:middle}
+  .qcard.locked .frompill{display:inline-block}
+  /* Customer NTE stays the WO's own value and editable even when other fields are locked */
+  .qcard.locked .field.keep-editable .inp{pointer-events:auto;background:#fff;color:var(--ink)}
+  .nte-hint{display:none;font-size:11.5px;color:var(--faint);margin-top:5px}
+  .qcard.locked .nte-hint{display:block}
+
+  /* gate qualification action buttons until NAT resolves the match */
+  .qcard.actions-locked .qbtn{background:#C4D0DC!important;color:#fff!important;pointer-events:none;border-color:transparent!important;box-shadow:none}
+  .gate-note{font-size:11.5px;color:var(--faint);display:none;align-items:center;gap:6px;margin-top:8px}
+  .qcard.actions-locked .gate-note{display:flex}
+
+  /* footer action bar (auto-link review) */
+  .footer{padding:16px 22px;display:flex;align-items:center;gap:12px}
+  .footer .grow{flex:1}
+  .unlink-confirm{padding:14px 22px;background:#FCFBF6;border-top:1px solid var(--line);display:none}
+  .unlink-confirm.show{display:block}
+  .unlink-confirm .t{font-size:13.5px;color:var(--ink-2)}
+  .unlink-confirm .r{display:flex;gap:10px;margin-top:12px}
+  .unlink-confirm.inline{border-top:0;background:#FCFBF6;border:1px solid var(--amber-brd);border-radius:9px;margin-top:12px;padding:12px 14px}
+
+  /* positive link-confirm box */
+  .link-confirm{background:var(--green-bg);border:1px solid var(--green-brd);border-radius:9px;margin-top:12px;padding:12px 14px;display:none}
+  .link-confirm.show{display:block}
+  .link-confirm .t{font-size:13px;color:var(--ink-2);line-height:1.5}
+  .link-confirm .t b{color:var(--ink)}
+  .link-confirm .r{display:flex;gap:10px;margin-top:12px}
+  .ureason{width:100%;margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:inherit;font-size:13.5px;resize:vertical;min-height:60px;color:var(--ink);background:#fff}
+  .ureason:focus{outline:none;border-color:var(--brand)}
+  .wcount{font-size:11.5px;color:var(--faint);margin-top:4px;text-align:right}
+  .wcount.over{color:#C62828}
+
+  /* what-happens outcomes in the auto-link card */
+  .hl{margin-top:13px;display:flex;flex-direction:column;gap:6px}
+  .hl div{display:flex;gap:8px;font-size:12.5px;color:var(--ink-2);line-height:1.45}
+  .hl b{color:var(--ink);font-weight:600}
+  .hl .g{flex-shrink:0}
+
+  /* ===== one unified match card ===== */
+  .mcard{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .mcard.linked{border-color:var(--green-brd)}
+  .mc-head{display:flex;align-items:center;gap:10px;padding:15px 16px 0}
+  .mc-ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .mc-ic.blue{background:var(--chip-blue-bg);color:var(--brand)}
+  .mc-ic.green{background:var(--green-bg);color:var(--green)}
+  .mc-title{font-family:var(--f-head);font-weight:600;font-size:15.5px}
+  .mc-chip{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:20px}
+  .mc-chip.blue{background:var(--chip-blue-bg);color:var(--brand)}
+  .mc-chip.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-brd)}
+  .mc-say{font-size:13px;color:var(--ink-2);padding:7px 16px 0 16px;line-height:1.5}
+  .mc-body{padding:13px 16px 15px}
+
+  /* proposal identity inside the card (no nested border) */
+  .pident .top{display:flex;align-items:baseline;gap:9px}
+  .pident .scope1{margin-top:5px}
+  .prp{font-family:var(--f-head);font-weight:600;font-size:15px}
+  .trade{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--chip-blue-bg);color:var(--chip-blue)}
+  .meta-line{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:500}
+  .scope1{font-size:13px;color:var(--ink-2)}
+  .plink{margin-top:7px;font-size:12.5px}
+  .plink a{font-weight:600}
+  .plink .orig{color:var(--faint);font-size:11.5px;margin-left:8px}
+
+  /* why chips */
+  .mrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:11px}
+  .mchip{font-size:12px;font-weight:600;color:var(--green);background:var(--green-bg);border:1px solid var(--green-brd);border-radius:20px;padding:3px 10px}
+  .mchip.soft{color:var(--amber);background:var(--amber-bg);border-color:var(--amber-brd)}
+  .mchip.neu{color:var(--muted);background:var(--line-2);border-color:var(--line)}
+  /* shared proposal item */
+  .pbody{flex:1;min-width:0}
+  .pitem.prow .pbody{min-width:0}
+  .rwhy{font-size:12px;color:var(--muted);margin-top:5px}
+  .rwhy b{color:var(--ink-2);font-weight:600}
+
+  /* next-step note = card footer */
+  .mc-note{padding:11px 16px;border-top:1px solid var(--line-2);background:#FAFCFE;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .mc-note .grow{flex:1}
+  .mc-note a{font-weight:600;white-space:nowrap}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:#0E1726;color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:600;z-index:90;opacity:0;pointer-events:none;transition:.2s;display:flex;gap:9px}.toast.show{opacity:1;transform:translateX(-50%)}.toast .k{color:#7CE28A}
+</style>
+</head>
+<body>
+
+<div class="switch">
+  <span class="tt">Review states →</span>
+  <div class="seg" id="seg">
+    <button data-s="single" class="on">Confirm (single)</button>
+    <button data-s="multi">Choose (multiple)</button>
+    <button data-s="high">Auto-linked</button>
+    <button data-s="low">Low · no task</button>
+    <button data-s="none">No match</button>
+  </div>
+</div>
+
+<div class="nav">
+  <span class="logo">DMG<sup>PRO</sup></span><span class="grow"></span>
+  <button class="btn-data">DMG Data</button>
+  <div class="who"><div class="n">Sonal Kumari Thakur</div><div class="r">Product Leader</div></div>
+  <span class="hours">Regular Hours ⌄</span><span class="grow"></span>
+  <span class="lnk">ⓘ Provider Policy</span><span class="lnk">?</span><span class="lnk bell">🔔<span class="cnt">10</span></span>
+</div>
+
+<div class="shell">
+  <div class="rail"><div class="i">▦</div><div class="i">✔</div><div class="i">📈</div><div class="i on">🎫</div><div class="i">🛠</div><div class="i">📝</div><div class="i">⟳</div><div class="i">🧾</div><div class="i">🏢</div><div class="i">👥</div><div class="i">💼</div><div class="i">📅</div><div class="i">📍</div><div class="i">📊</div></div>
+
+  <div class="main">
+    <div class="crumbs"><span class="c">Tickets / <b>TKT-260701-5040</b></span><span class="chip route">Non Routine</span><span class="grow"></span><button class="btn-raise">Raise a Request</button><button class="kebab">⋮</button></div>
+
+    <div class="card">
+      <div class="thead">
+        <div class="prop"><div class="pn">Kohl's Corporate <span>/ #11078</span></div><div class="addr">📍 Kohl's (11078 , KOHL'S-BENTON TOWNSHIP) - 980 E Napier Ave, Benton Harbor, MI, 49022</div></div>
+        <div class="grid">
+          <div class="kv"><div class="k">Ticket Number</div><div class="v">TKT-260701-5040</div></div>
+          <div class="kv"><div class="k">Work Order Number</div><div class="v lnk">355480598</div></div>
+          <div class="kv"><div class="k">Customer Arrive Before Date</div><div class="v">Jul 03, 2026, 09:47 AM EDT</div></div>
+          <div class="kv"><div class="k">Assignee</div><div class="v">Sam Duncan</div></div>
+          <div class="kv"><div class="k">Urgency</div><div class="v">Normal</div></div>
+          <div class="kv"><div class="k">Customer NTE</div><div class="v" id="hNte">$0.00</div></div>
+          <div class="kv"><div class="k">Service Line &amp; Type</div><div class="v">Plumbing<br><span style="font-weight:500;color:var(--ink-2)">Faucet/Sink Repair and Replacement</span></div></div>
+          <div class="kv"><div class="k">Life Cycle Stage</div><div class="v">Qualification in Progress</div></div>
+        </div>
+      </div>
+      <div class="scope"><div class="k">Scope</div><div class="txt">PLUMBING / Plumbing / Toilet, Urinal, Sink/Faucet, Mop Sink/Faucet / Leak or clog in bathroom / Which Fixture?: Sink/Faucet / Repair needed: Leak / …</div><a class="more">Show More</a></div>
+    </div>
+
+    <div class="body">
+      <div class="card">
+        <div class="tabs"><div class="t on">🎫</div><div class="t">DMG</div><div class="t">☰</div></div>
+        <div class="tdetails">
+          <h3>Ticket Details</h3>
+          <div class="drow"><div class="k">Service Line</div><div class="v">Plumbing</div></div>
+          <div class="drow"><div class="k">Service Type</div><div class="v">Faucet/Sink Repair and Replacement</div></div>
+          <div class="drow"><div class="k">Customer Complete Before Date</div><div class="v">July 03, 2026, 09:47 AM EDT</div></div>
+          <div class="drow"><div class="k">Work Order Number</div><div class="v"><a>355480598</a></div></div>
+          <div class="drow"><div class="k">District Manager</div><div class="v">Chad Morton</div></div>
+          <div class="drow"><div class="k">Ticket Type</div><div class="v">Tracking And Billing</div></div>
+          <div class="drow"><div class="k">Customer Work Order</div><div class="sub">
+            <div class="srow"><span>—</span><span class="lbl">Status</span>IN PROGRESS/DISPATCH CONFIRMED</div>
+            <div class="srow"><span>—</span><span class="lbl">Priority</span>P2-Yellow</div>
+            <div class="srow"><span>—</span><span class="lbl">Priority Hours</span>72 hours</div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="card qcard">
+        <div class="qhead">
+          <div class="row1"><h2>Qualify Ticket</h2><span class="st" id="taskStatus">In Progress</span><button class="x">✕</button></div>
+          <div class="meta"><div><div class="k">Task number:</div><div class="v">260701-012276</div></div><div><div class="k">Priority</div><div class="v hi">High</div></div></div>
+          <div class="meta" style="margin-top:6px"><div><div class="k">Assignee:</div><div class="v">Sam Duncan</div></div></div>
+        </div>
+        <div class="qdesc"><div class="k">Description</div><div class="v">Add additional data to the ticket for effective fulfillment</div></div>
+
+        <div id="matchRegion"></div>
+
+        <div class="step">
+          <div class="lab">Step 1</div>
+          <div class="row"><h4>Request Type and SLA</h4><span class="caret">⌃</span></div>
+          <div class="hint">Fill in request type and SLA details</div>
+          <div class="field"><label>What is the service line? <span class="req">*</span><span class="frompill">from proposal</span></label><div class="inp sel">Plumbing<span class="lk">🔒</span></div></div>
+          <div class="field"><label>What is the service type? <span class="req">*</span><span class="frompill">from proposal</span></label><div class="inp sel">Faucet/Sink Repair and Replacement<span class="lk">🔒</span></div></div>
+          <div class="q">Does the customer need a proposal for this service request?</div>
+          <div class="opts"><span class="radio"><span class="dot"></span>Yes, need a provider estimate to create a proposal.</span><span class="radio"><span class="dot"></span>Yes, I can self quote and create a proposal</span></div>
+          <div class="opts" style="margin-top:12px"><span class="radio on"><span class="dot"></span>No proposal is needed.</span></div>
+          <div class="q">Is this a recall?</div>
+          <div class="opts"><span class="radio"><span class="dot"></span>Yes</span><span class="radio on"><span class="dot"></span>No</span></div>
+          <div class="field" style="margin-top:18px"><label>Confirmed Customer Arrive Before Date <span class="req">*</span></label><div class="inp">07/03/2026 07:17 PM<span style="margin-left:auto;color:var(--muted)">📅</span></div></div>
+          <div class="step-actions"><button class="btn btn-primary qbtn">Update Ticket and Continue</button></div>
+        </div>
+
+        <div class="step" id="step2">
+          <div class="lab">Step 2</div>
+          <div class="row"><h4>Scope Details</h4><span class="caret">⌃</span></div>
+          <div class="hint">Fill in scope details</div>
+          <div class="field keep-editable" id="nteWrap"><label>Customer NTE</label>
+            <div style="display:flex;gap:14px;align-items:flex-end"><div class="inp" id="nteField" style="flex:1">$</div><button class="btn btn-primary qbtn" id="nteUpdate" style="padding:9px 18px">Update</button></div>
+            <div class="nte-hint">Kept from the work order — not changed by the linked proposal. Edit if needed.</div>
+          </div>
+          <div class="q">Is it a project?</div>
+          <div class="opts" id="projOpts"><span class="radio"><span class="dot"></span>Yes</span><span class="radio"><span class="dot"></span>No</span></div>
+          <div class="field" style="margin-top:18px"><label>Type of work<span class="frompill">from proposal</span></label><div class="inp sel" id="typeWork">&nbsp;<span class="lk">🔒</span></div></div>
+          <div class="step-actions"><button class="btn btn-primary qbtn">Save &amp; Next</button></div>
+        </div>
+
+        <div id="qfooter"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="k">✓</span><span id="toastMsg"></span></div>
+
+<script>
+const TKT='TKT-260701-5040', PRIOR_TKT='TKT-260401-3391';
+const region=document.getElementById('matchRegion');
+const hNte=document.getElementById('hNte'), nteField=document.getElementById('nteField');
+const qcard=document.querySelector('.qcard'), qfooter=document.getElementById('qfooter');
+const typeWork=document.getElementById('typeWork'), projOpts=document.getElementById('projOpts');
+const taskStatus=document.getElementById('taskStatus');
+function setStatus(done){taskStatus.textContent=done?'Done':'In Progress';taskStatus.classList.toggle('done',done);}
+let tt; function toast(m){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
+const LK='<span class="lk">🔒</span>';
+function setNte(v){nteField.textContent=v;}
+function clearNte(){nteField.textContent='$';}
+const defaultFooter='<div class="qdone"><button class="btn-done qbtn">Qualification Done, Ready for Jobs</button></div>';
+
+/* preferred provider from each proposal's ERQ recommendation (null = none → job board) */
+const PROVIDER={'PRP-338204':'Metro Plumbing Services','PRP-338110':null,'PRP-337991':'Great Lakes Mechanical'};
+function jobLine(id){
+  const p=PROVIDER[id];
+  return p
+    ? `A job will be created and posted to the preferred provider — <b>${p}</b>. If they decline or aren't available, it moves to the job board.`
+    : `A job will be created and posted to the <b>job board</b> — no preferred provider was set on the proposal.`;
+}
+function lockActions(){qcard.classList.add('actions-locked');}
+function enableActions(){qcard.classList.remove('actions-locked');}
+function linkMsg(id){return `We'll mark <b>${id}</b> approved and auto-qualify this ticket. ${jobLine(id)}`;}
+
+/* ===== shared building blocks: same structure for every state ===== */
+function chipEl(c){const cls=c.k==='pos'?'mchip':c.k==='soft'?'mchip soft':'mchip neu';const g=c.k==='pos'?'✓ ':c.k==='soft'?'≈ ':'';return `<span class="${cls}">${g}${c.t}</span>`;}
+function pitem(p,sel){return `<div class="pitem${sel?' prow':''}"${sel?` data-id="${p.id}" role="radio" aria-checked="false" tabindex="0"`:''}>
+    ${sel?'<div class="dot" style="position:relative"></div>':''}
+    <div class="pbody">
+      <div class="top"><span class="prp">${p.id}</span><span class="trade">${p.trade}</span><span class="meta-line">${p.meta}</span></div>
+      <div class="scope1">${p.scope}</div>
+      <div class="plink"><a href="#" onclick="${sel?'event.stopPropagation();':''}return false">View proposal ↗</a><span class="orig">submitted on ${p.ticket}</span></div>
+      <div class="mrow">${p.chips.map(chipEl).join('')}</div>
+    </div>
+  </div>`;}
+function hlBlock(a,b){return `<div class="hl">
+    <div><span class="g">✓</span><span><b>${a.l}</b> — ${a.t}</span></div>
+    <div><span class="g">↩</span><span><b>${b.l}</b> — ${b.t}</span></div>
+  </div>`;}
+function linkConfirmBox(txt,okLabel){return `<div class="link-confirm" id="linkConfirm"><div class="t">${txt||''}</div>
+    <div class="r"><button class="btn btn-primary" id="doLink">${okLabel}</button><button class="btn btn-text" id="cancelLink">Cancel</button></div></div>`;}
+function renderCard(o){return `<div class="pm"><div class="mcard ${o.cardMod||''}">
+    <div class="mc-head"><span class="mc-ic ${o.tone}">🔗</span><span class="mc-title">${o.title}</span><span class="mc-chip ${o.tone}">${o.chip}</span></div>
+    <div class="mc-say">${o.say}</div>
+    <div class="mc-body">
+      ${o.items}
+      ${hlBlock(o.hlA,o.hlB)}
+      <div class="pm-actions" id="acts"><span class="grow"></span>${o.actions}</div>
+      ${o.extra||''}
+    </div>
+  </div></div>`;}
+const JOB_HL={l:'Link &amp; qualify',t:"we finish qualification and post the job to the preferred provider, or the job board if there isn't one."};
+
+/* prefill + lock qualification from the linked proposal
+   NOTE: Customer NTE is intentionally NOT copied from the proposal — the WO's own NTE is kept. */
+function lockQual(p){
+  setNte(hNte.textContent);   // keep the work order's own Customer NTE, editable
+  typeWork.innerHTML='Repair'+LK;
+  projOpts.children[0].classList.remove('on'); projOpts.children[1].classList.add('on'); // project = No
+  qcard.classList.add('locked');
+}
+function unlockQual(){
+  qcard.classList.remove('locked'); enableActions(); setStatus(false);
+  clearNte(); typeWork.innerHTML='&nbsp;'+LK;
+  projOpts.children[0].classList.remove('on'); projOpts.children[1].classList.remove('on');
+  qfooter.innerHTML=defaultFooter;
+}
+function prefill(v){setNte(v);hNte.textContent=v;} // light prefill used by single/multi on link
+function clearFill(){clearNte();}
+
+/* single — confirm */
+function stateSingle(){
+  hNte.textContent='$1,950.00'; clearFill(); lockActions();
+  const P={id:'PRP-338204',trade:'Plumbing',meta:'$1,850 · sent Jun 14',scope:'Restroom sink/faucet leak repair — replace cartridge & supply line',ticket:'TKT-260401-3391',
+    chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 5%',k:'soft'},{t:'Scope partly matches',k:'soft'}]};
+  region.innerHTML=renderCard({
+    tone:'blue', title:'Did this come from a proposal?', chip:'LIKELY MATCH',
+    say:'This work order looks like it came from a proposal your team already sent. Confirm the match to link &amp; qualify, or dismiss.',
+    items:pitem(P,false),
+    hlA:JOB_HL, hlB:{l:'Not a match',t:'you continue with normal qualification.'},
+    actions:`<button class="btn btn-text" id="notMatch">Not a match</button><button class="btn btn-primary" id="link">Link &amp; qualify</button>`,
+    extra:linkConfirmBox('','Yes, link &amp; qualify')
+  });
+  const acts=region.querySelector('#acts'), lc=region.querySelector('#linkConfirm');
+  region.querySelector('#notMatch').onclick=()=>{enableActions();region.innerHTML=wentManual();toast('Dismissed — qualify manually');};
+  region.querySelector('#link').onclick=()=>{lc.querySelector('.t').innerHTML=linkMsg(P.id);lc.classList.add('show');acts.classList.add('hidden');};
+  region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
+  region.querySelector('#doLink').onclick=()=>{lockQual({price:'$1,850.00'});region.innerHTML=qualified(P.id);toast(P.id+' linked · ticket qualified');};
+}
+
+/* multiple — choose */
+function stateMulti(){
+  hNte.textContent='$1,900.00'; clearFill(); lockActions();
+  const C=[
+    {id:'PRP-338204',trade:'Plumbing',meta:'$1,850 · Jun 14',scope:'Restroom sink/faucet leak repair',ticket:'TKT-260401-3391',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope closely matches',k:'pos'}]},
+    {id:'PRP-338110',trade:'Plumbing',meta:'$1,950 · Jun 20',scope:'Faucet cartridge replacement (multiple fixtures)',ticket:'TKT-260455-2210',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope partly matches',k:'soft'}]},
+    {id:'PRP-337991',trade:'Plumbing',meta:'$2,040 · May 30',scope:'Restroom faucet & drain repair',ticket:'TKT-260388-7742',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 8%',k:'soft'},{t:'Scope partly matches',k:'soft'}]}
+  ];
+  region.innerHTML=renderCard({
+    tone:'blue', title:'Did this come from one of these proposals?', chip:'LIKELY MATCH',
+    say:'This work order looks like it came from one of these proposals your team already sent. Pick the right one to link &amp; qualify, or dismiss.',
+    items:`<div class="plist">${C.map(c=>pitem(c,true)).join('')}</div>`,
+    hlA:JOB_HL, hlB:{l:'None of these',t:'you continue with normal qualification.'},
+    actions:`<button class="btn btn-text" id="none">None of these</button><button class="btn btn-primary" id="link" disabled>Link &amp; qualify</button>`,
+    extra:linkConfirmBox('','Yes, link &amp; qualify')
+  });
+  let sel=null; const link=region.querySelector('#link'), acts=region.querySelector('#acts'), lc=region.querySelector('#linkConfirm');
+  const priceFor=id=>(id==='PRP-338204'?'$1,850.00':id==='PRP-338110'?'$1,950.00':'$2,040.00');
+  region.querySelectorAll('.prow').forEach(el=>{
+    const pick=()=>{region.querySelectorAll('.prow').forEach(r=>{r.classList.remove('sel');r.setAttribute('aria-checked','false')});el.classList.add('sel');el.setAttribute('aria-checked','true');sel=el.dataset.id;link.disabled=false;};
+    el.onclick=pick; el.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();pick();}};
+  });
+  region.querySelector('#none').onclick=()=>{enableActions();region.innerHTML=wentManual();toast('Dismissed — qualify manually');};
+  link.onclick=()=>{if(!sel)return;lc.querySelector('.t').innerHTML=linkMsg(sel);lc.classList.add('show');acts.classList.add('hidden');};
+  region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
+  region.querySelector('#doLink').onclick=()=>{lockQual({price:priceFor(sel)});region.innerHTML=qualified(sel);toast(sel+' linked · ticket qualified');};
+}
+
+/* high — auto-linked: prefilled, locked, review & confirm */
+const PROP={id:'PRP-338204',price:'$1,850.00'};
+function stateHigh(){
+  hNte.textContent='$1,860.00';   // the WO's own Customer NTE (matched proposal is $1,850)
+  lockQual(PROP); lockActions();
+  qfooter.innerHTML='';
+  const P={id:PROP.id,trade:'Plumbing',meta:'$1,850 · sent Jun 14',scope:'Restroom sink/faucet leak repair — replace cartridge & supply line',ticket:PRIOR_TKT,
+    chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'Price matches (within 1%)',k:'pos'}]};
+  region.innerHTML=renderCard({
+    cardMod:'is-linked', tone:'green', title:'Auto-linked proposal', chip:'PLEASE REVIEW',
+    say:"This work order looks like it came from a proposal your team already sent — we've linked it and pre-filled the qualification. Review and confirm, or unlink.",
+    items:pitem(P,false),
+    hlA:{l:'Confirm',t:"finishes qualification and posts the job to the preferred provider, or the job board if there isn't one."},
+    hlB:{l:'Unlink',t:`clears the pre-filled details; the proposal goes back to its previous ticket (${PRIOR_TKT}).`},
+    actions:`<button class="btn btn-text" id="unlinkBtn">Unlink</button><button class="btn btn-primary" id="confirmBtn">Confirm &amp; qualify</button>`,
+    extra:linkConfirmBox(linkMsg(PROP.id),'Yes, confirm &amp; qualify')+`
+         <div class="unlink-confirm inline" id="unlinkConfirm">
+           <div class="t">Unlink <b>${PROP.id}</b>? The pre-filled qualification is cleared and this becomes a standard ticket you fill in yourself.</div>
+           <textarea class="ureason" id="unlinkReason" placeholder="Why isn't this the right match? This helps improve auto-matching."></textarea>
+           <div class="wcount"><span id="wc">0</span>/150 words</div>
+           <div class="r"><button class="btn" style="background:#C62828;color:#fff" id="doUnlink">Unlink &amp; reset</button><button class="btn btn-text" id="cancelUnlink">Cancel</button></div>
+         </div>`
+  });
+  const acts=region.querySelector('#acts'), uc=region.querySelector('#unlinkConfirm'), lc=region.querySelector('#linkConfirm');
+  region.querySelector('#confirmBtn').onclick=()=>{lc.classList.add('show');acts.classList.add('hidden');};
+  region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
+  region.querySelector('#doLink').onclick=confirmHigh;
+  region.querySelector('#unlinkBtn').onclick=()=>{uc.classList.add('show');acts.classList.add('hidden');};
+  region.querySelector('#cancelUnlink').onclick=()=>{uc.classList.remove('show');acts.classList.remove('hidden');};
+  region.querySelector('#doUnlink').onclick=doUnlink;
+  const ta=region.querySelector('#unlinkReason'), wc=region.querySelector('#wc');
+  ta.addEventListener('input',()=>{let w=ta.value.trim().split(/\s+/).filter(Boolean);if(w.length>150){w=w.slice(0,150);ta.value=w.join(' ');}wc.textContent=w.length;});
+}
+function confirmHigh(){
+  region.innerHTML=qualified(PROP.id);
+  qfooter.innerHTML=`<div class="footer"><span class="grow"></span><span style="font-size:13px;color:var(--green);font-weight:600">✓ Qualification complete</span></div>`;
+  // fields stay locked as the final, proposal-sourced record
+  toast(PROP.id+' approved · ticket qualified');
+}
+function doUnlink(){
+  const rEl=region.querySelector('#unlinkReason'); const r=rEl?rEl.value.trim():'';
+  unlockQual();  // enables the qualification actions; Customer NTE stays the WO's own value
+  region.innerHTML=`<div class="pm"><div class="confirm grey"><span class="tick">↩</span><span><b>${PROP.id}</b> unlinked and returned to ${PRIOR_TKT}. Qualification reset &amp; unlocked — qualify this ticket manually below.${r?' Reason saved.':''}</span><a href="#" onclick="render('high');return false">Undo</a></div></div>`;
+  toast(r?'Unlinked · reason saved':'Unlinked · qualification unlocked');
+}
+
+/* low / none — no task surfaces */
+function stateLow(){hNte.textContent='$0.00';clearFill();region.innerHTML=`<div class="pm"><div class="quiet"><span class="badge">NO MATCH</span><span>No matching proposal for this store — qualify as normal.</span></div></div>`;}
+function stateNone(){hNte.textContent='$0.00';clearFill();region.innerHTML='';}
+
+/* shared end states */
+/* link/confirm → auto-qualify + tell the NAT what happens to the job */
+function qualified(id){setStatus(true);return `<div class="pm">
+  <div class="confirm"><span class="tick">✓</span><span>Done — we've linked proposal <b>${id}</b>, marked it approved, and qualified this ticket.</span><a href="#" onclick="return false">View proposal</a></div>
+  <div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-brd);border-radius:10px;padding:11px 13px;font-size:13px;color:#245C27;display:flex;gap:9px"><span>📤</span><span>${jobLine(id)}</span></div>
+</div>`;}
+/* dismiss/none → NAT qualifies manually (actions now enabled) */
+function wentManual(){return `<div class="pm"><div class="confirm grey"><span class="tick">—</span><span>No proposal linked — continue qualifying this ticket manually below.</span><a href="#" onclick="render(current);return false">Undo</a></div></div>`;}
+
+let current='single';
+const R={single:stateSingle,multi:stateMulti,high:stateHigh,low:stateLow,none:stateNone};
+function render(s){unlockQual();current=s;R[s]();}
+document.getElementById('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(b.dataset.s);});
+render('single');
+</script>
+</body>
+</html>

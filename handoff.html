@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Design Handoff — WO-to-Proposal Matching (Tier 2)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#123A5E;--brand:#0F4E82;--orange:#EE7127;--ink:#1F2933;--muted:#5A6B7B;--line:#E3E8EF;--card:#fff;--canvas:#F4F6F8;--amber-bg:#FFF6E9;--amber-brd:#F3DCAF;--amber:#8A5A00}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);font-family:'Inter',system-ui,sans-serif;color:var(--ink);line-height:1.6}
+  .top{background:var(--navy);border-bottom:3px solid var(--orange);color:#fff;padding:16px 24px;font-family:'Poppins';font-weight:700;font-size:16px}
+  .top a{color:#cfe0f5;text-decoration:none;font-size:13px;font-weight:600;margin-left:14px}
+  .wrap{max-width:860px;margin:0 auto;padding:36px 24px 70px}
+  h1{font-family:'Poppins';font-size:27px;margin:0 0 6px}
+  .lead{color:var(--muted);font-size:15px;margin:0 0 26px}
+  h2{font-family:'Poppins';font-size:19px;margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+  h3{font-family:'Poppins';font-size:15px;margin:20px 0 6px}
+  p,li{font-size:14.5px}
+  code{background:#EEF2F7;border-radius:5px;padding:1px 6px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+  pre{background:#0E1726;color:#E6EDF3;border-radius:10px;padding:14px 16px;overflow:auto;font-size:13px}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#F3F5F7;font-weight:600}
+  a{color:var(--brand)}
+  .callout{background:var(--amber-bg);border:1px solid var(--amber-brd);color:#5C4A16;border-radius:10px;padding:12px 15px;font-size:13.5px;margin:16px 0}
+  ul{margin:8px 0;padding-left:22px}
+</style>
+</head>
+<body>
+  <div class="top">DMG · Design Handoff <a href="index.html">← Home</a><a href="qt_proposal_match_all_states.html">Open prototype →</a></div>
+  <div class="wrap">
+    <h1>WO-to-Proposal Matching (Tier 2)</h1>
+    <p class="lead">The <b>Link Proposal</b> enhancement inside the Control Center Qualify Ticket (QT) task — surfaced inline, in the current DMG design system.</p>
+
+    <p><b>Prototype:</b> <a href="qt_proposal_match_all_states.html">qt_proposal_match_all_states.html</a> — open and use the dark bar at the top to switch states.<br>
+    <b>Requirement:</b> Confluence — <i>Requirements: WO-to-Proposal Matching Agent (Tier 2)</i>, FUL space, page <code>4363583489</code>.<br>
+    <b>Surfaces:</b> <code>dmg.cc-tasks.ui</code> / <code>dmg.fulfilment.ui</code> (new QT task type <b>Link Proposal</b>); intelligence from IRIS; link/approve/attribution via <code>ticket-service</code> + <code>proposal-service</code>.</p>
+
+    <h2>What this is</h2>
+    <p>When a customer approves a DMG proposal, it often arrives as a brand-new work order with no reference to the original proposal — so we lose attribution and can't measure proposal→approval conversion. The Tier 2 agent runs during qualification, detects when a WO likely came from a submitted proposal, and surfaces it to the NAT <b>inline in the Qualify Ticket panel</b> (no new page or modal).</p>
+
+    <h2>Match signals (strongest → weakest)</h2>
+    <ol>
+      <li><b>NTE proximity</b> — WO NTE vs proposal customer price (strongest)</li>
+      <li><b>Service line match</b> — same trade</li>
+      <li><b>Scope similarity</b> — WO description vs proposal title/scope</li>
+      <li><b>Timing</b> — proposal recency</li>
+    </ol>
+    <p>Shown as compact chips (✓ green = strong, ≈ amber = partial). Every match screen shows the same set: <b>Same store · Same trade · NTE proximity · Scope match</b>.</p>
+
+    <h2>States</h2>
+    <table>
+      <tr><th>State</th><th>Trigger</th><th>NAT UI</th></tr>
+      <tr><td><b>Auto-linked</b></td><td>Property + service + NTE within 1%</td><td>Already linked; qualification pre-filled &amp; locked. Review → <b>Confirm &amp; qualify</b> or <b>Unlink</b>.</td></tr>
+      <tr><td><b>Confirm (single)</b></td><td>Property + ≥1 signal, not all 3</td><td>One suggestion → <b>Link &amp; qualify</b> or <b>Not a match</b>.</td></tr>
+      <tr><td><b>Choose (multiple)</b></td><td>Several proposals score medium+</td><td>Ranked radio list → pick → <b>Link &amp; qualify</b>, or <b>None of these</b>.</td></tr>
+      <tr><td><b>Low</b></td><td>Property match only</td><td>No task; logged for training. Normal qualification.</td></tr>
+      <tr><td><b>No match</b></td><td>No submitted proposals in lookback</td><td>Nothing; normal qualification.</td></tr>
+    </table>
+
+    <h2>Behavior rules (all match screens)</h2>
+    <ol>
+      <li><b>Qualification actions are gated.</b> While a match decision is pending, the QT buttons (Update Ticket and Continue, Update NTE, Save &amp; Next, Qualification Done) are greyed/disabled. They enable only when the NAT rejects the match and goes manual.</li>
+      <li><b>Link / Confirm → auto-qualify</b>, after a confirmation step stating the outcome: <i>"We'll mark PRP-XXXXXX approved and auto-qualify this ticket. A job will be created and posted to the preferred provider — [Provider]. If they decline or aren't available, it moves to the job board."</i> No preferred provider → posts to the job board. On confirm: proposal → <b>Approved</b>, attribution written, ticket qualified, task status flips <b>In Progress → Done</b>.</li>
+      <li><b>Dismiss → manual qualification.</b> Rejecting enables the normal QT form; nothing is linked.</li>
+      <li><b>Customer NTE is NOT copied from the proposal.</b> Proposal is source of truth for scope/service/type (pre-filled + locked), but Customer NTE keeps the work order's own value and stays editable — the customer may send a WO with a different/updated price they intend to keep.</li>
+      <li><b>Reason capture only on Auto-link → Unlink</b>, as free text (up to 150 words) — unlinking overrides an automated decision and feeds model training. Single/Multiple dismiss is one-click.</li>
+      <li><b>View proposal</b> link on every proposal, showing the originating ticket (proposal was submitted on a different WO), e.g. <code>View proposal ↗ · submitted on TKT-260401-3391</code>.</li>
+    </ol>
+
+    <h2>Copy</h2>
+    <ul>
+      <li><b>Titles:</b> <code>Auto-linked proposal</code> · <code>Did this come from a proposal?</code> · <code>Did this come from one of these proposals?</code></li>
+      <li><b>Say line skeleton:</b> "This work order looks like it came from a proposal your team already sent…" + type-specific action clause.</li>
+      <li><b>Confidence chip:</b> <code>PLEASE REVIEW</code> (auto) · <code>LIKELY MATCH</code> (single/multiple).</li>
+      <li><b>Outcomes block (2 lines, every screen):</b> ✓ primary (link → qualify + job) · ↩ secondary (dismiss/unlink → manual).</li>
+    </ul>
+
+    <h2>Design system notes</h2>
+    <p>Built to the current Control Center look: DMG navy top bar (<code>#123A5E</code>) + orange accent (<code>#EE7127</code>), Poppins headings + Inter body, orange step accent bars, underline inputs, navy radios/buttons. Maps to <b>dmgKit</b> (Material UI): match card ≈ <code>Card</code>, chips ≈ <code>Chip</code>, buttons ≈ <code>Button</code>, selectable list ≈ <code>RadioCard</code>, confirm boxes ≈ inline <code>Alert</code>.</p>
+    <div class="callout">⚠️ Colors/fonts are approximated from a product screenshot; exact dmgKit theme tokens are not exposed via MCP. Swap the CSS <code>:root</code> variables for the real dmgKit token export for pixel fidelity.</div>
+
+    <h2>Implementation notes</h2>
+    <ul>
+      <li><b>IRIS</b> returns <code>proposal_match</code>: action (<code>auto_link | confirm | multi_confirm | log_only | no_match</code>), candidates (id, confidence, rationale, signals), and target proposal id for auto_link/confirm.</li>
+      <li><b>ticket-service:</b> add WO NTE to the IRIS payload; read <code>proposal_match</code>; auto_link → execute link + emit event + write attribution; confirm/multi_confirm → create the pre-populated Link Proposal task; log_only/no_match → continue.</li>
+      <li><b>proposal-service:</b> on link-confirmed event → proposal <code>Submitted → Approved</code> + write attribution; signal preferred provider (from ERQ) to assignment.</li>
+      <li><b>Approval &amp; attribution fire on the NAT's confirm</b>, not on auto-link — so Unlink is a cheap, reversible rollback (proposal returns to its prior ticket).</li>
+    </ul>
+  </div>
+</body>
+</html>
