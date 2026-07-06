@@ -105,6 +105,14 @@
   .meta-line{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:500}
   .scope1{font-size:13px;color:var(--ink-2);margin-top:5px}
 
+  /* proposal status badge (maps to ProposalStatus enum) */
+  .pstatus{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:2px 9px;border-radius:20px;border:1px solid transparent;white-space:nowrap}
+  .st-submitted{background:var(--chip-blue-bg);color:var(--chip-blue);border-color:#CBDEF3}
+  .st-draft{background:var(--line-2);color:var(--muted);border-color:var(--line)}
+  .st-approved{background:var(--green-bg);color:var(--green);border-color:var(--green-brd)}
+  .st-onhold{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-brd)}
+  .st-rejected,.st-cancelled{background:#FDECEC;color:#C62828;border-color:#F3C2C2}
+
   /* selectable list (multiple) */
   .plist{display:flex;flex-direction:column;gap:8px}
   .prow{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.12s}
@@ -237,7 +245,6 @@
   <div class="seg" id="seg">
     <button data-s="single" class="on">Confirm (single)</button>
     <button data-s="multi">Choose (multiple)</button>
-    <button data-s="high">Auto-linked</button>
     <button data-s="low">Low · no task</button>
     <button data-s="none">No match</button>
   </div>
@@ -364,14 +371,16 @@ function jobLine(id){
 }
 function lockActions(){qcard.classList.add('actions-locked');}
 function enableActions(){qcard.classList.remove('actions-locked');}
-function linkMsg(id){return `We'll mark <b>${id}</b> approved and auto-qualify this ticket. ${jobLine(id)}`;}
+function linkMsg(id){return `We'll link <b>${id}</b> to this ticket, mark it approved, and pre-fill the qualification details from it. The ticket is <b>not</b> auto-qualified — you review and complete the remaining steps yourself.`;}
 
 /* ===== shared building blocks: same structure for every state ===== */
 function chipEl(c){const cls=c.k==='pos'?'mchip':c.k==='soft'?'mchip soft':'mchip neu';const g=c.k==='pos'?'✓ ':c.k==='soft'?'≈ ':'';return `<span class="${cls}">${g}${c.t}</span>`;}
+/* proposal status → badge (ProposalStatus enum: Draft, Submitted, Approved, Rejected, On Hold, Cancelled) */
+function statusEl(s){if(!s)return '';const key=s.toLowerCase().replace(/\s+/g,'');return `<span class="pstatus st-${key}">${s.toUpperCase()}</span>`;}
 function pitem(p,sel){return `<div class="pitem${sel?' prow':''}"${sel?` data-id="${p.id}" role="radio" aria-checked="false" tabindex="0"`:''}>
     ${sel?'<div class="dot" style="position:relative"></div>':''}
     <div class="pbody">
-      <div class="top"><span class="prp">${p.id}</span><span class="trade">${p.trade}</span><span class="meta-line">${p.meta}</span></div>
+      <div class="top"><span class="prp">${p.id}</span><span class="trade">${p.trade}</span>${statusEl(p.status)}<span class="meta-line">${p.meta}</span></div>
       <div class="scope1">${p.scope}</div>
       <div class="plink"><a href="#" onclick="${sel?'event.stopPropagation();':''}return false">View proposal ↗</a><span class="orig">submitted on ${p.ticket}</span></div>
       <div class="mrow">${p.chips.map(chipEl).join('')}</div>
@@ -393,7 +402,7 @@ function renderCard(o){return `<div class="pm"><div class="mcard ${o.cardMod||''
       ${o.extra||''}
     </div>
   </div></div>`;}
-const JOB_HL={l:'Link &amp; qualify',t:"we finish qualification and post the job to the preferred provider, or the job board if there isn't one."};
+const JOB_HL={l:'Link proposal',t:"we mark the proposal approved and pre-fill the qualification — you review and complete the remaining steps manually."};
 
 /* prefill + lock qualification from the linked proposal
    NOTE: Customer NTE is intentionally NOT copied from the proposal — the WO's own NTE is kept. */
@@ -412,41 +421,41 @@ function unlockQual(){
 function prefill(v){setNte(v);hNte.textContent=v;} // light prefill used by single/multi on link
 function clearFill(){clearNte();}
 
-/* single — confirm */
+/* single — confirm (covers high-confidence matches too: never auto-linked, NAT decides) */
 function stateSingle(){
   hNte.textContent='$1,950.00'; clearFill(); lockActions();
-  const P={id:'PRP-338204',trade:'Plumbing',meta:'$1,850 · sent Jun 14',scope:'Restroom sink/faucet leak repair — replace cartridge & supply line',ticket:'TKT-260401-3391',
+  const P={id:'PRP-338204',trade:'Plumbing',status:'Submitted',meta:'$1,850 · sent Jun 14',scope:'Restroom sink/faucet leak repair — replace cartridge & supply line',ticket:'TKT-260401-3391',
     chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 5%',k:'soft'},{t:'Scope partly matches',k:'soft'}]};
   region.innerHTML=renderCard({
     tone:'blue', title:'Did this come from a proposal?', chip:'LIKELY MATCH',
-    say:'This work order looks like it came from a proposal your team already sent. Confirm the match to link &amp; qualify, or dismiss.',
+    say:'This work order looks like it came from a proposal your team already sent. Link it if it’s the right match, or dismiss — the ticket is never auto-qualified.',
     items:pitem(P,false),
     hlA:JOB_HL, hlB:{l:'Not a match',t:'you continue with normal qualification.'},
-    actions:`<button class="btn btn-text" id="notMatch">Not a match</button><button class="btn btn-primary" id="link">Link &amp; qualify</button>`,
-    extra:linkConfirmBox('','Yes, link &amp; qualify')
+    actions:`<button class="btn btn-text" id="notMatch">Not a match</button><button class="btn btn-primary" id="link">Link proposal</button>`,
+    extra:linkConfirmBox('','Yes, link proposal')
   });
   const acts=region.querySelector('#acts'), lc=region.querySelector('#linkConfirm');
   region.querySelector('#notMatch').onclick=()=>{enableActions();region.innerHTML=wentManual();toast('Dismissed — qualify manually');};
   region.querySelector('#link').onclick=()=>{lc.querySelector('.t').innerHTML=linkMsg(P.id);lc.classList.add('show');acts.classList.add('hidden');};
   region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
-  region.querySelector('#doLink').onclick=()=>{lockQual({price:'$1,850.00'});region.innerHTML=qualified(P.id);toast(P.id+' linked · ticket qualified');};
+  region.querySelector('#doLink').onclick=()=>{lockQual({price:'$1,850.00'});region.innerHTML=linked(P.id);toast(P.id+' linked · qualification pre-filled');};
 }
 
 /* multiple — choose */
 function stateMulti(){
   hNte.textContent='$1,900.00'; clearFill(); lockActions();
   const C=[
-    {id:'PRP-338204',trade:'Plumbing',meta:'$1,850 · Jun 14',scope:'Restroom sink/faucet leak repair',ticket:'TKT-260401-3391',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope closely matches',k:'pos'}]},
-    {id:'PRP-338110',trade:'Plumbing',meta:'$1,950 · Jun 20',scope:'Faucet cartridge replacement (multiple fixtures)',ticket:'TKT-260455-2210',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope partly matches',k:'soft'}]},
-    {id:'PRP-337991',trade:'Plumbing',meta:'$2,040 · May 30',scope:'Restroom faucet & drain repair',ticket:'TKT-260388-7742',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 8%',k:'soft'},{t:'Scope partly matches',k:'soft'}]}
+    {id:'PRP-338204',trade:'Plumbing',status:'Submitted',meta:'$1,850 · Jun 14',scope:'Restroom sink/faucet leak repair',ticket:'TKT-260401-3391',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope closely matches',k:'pos'}]},
+    {id:'PRP-338110',trade:'Plumbing',status:'Draft',meta:'$1,950 · Jun 20',scope:'Faucet cartridge replacement (multiple fixtures)',ticket:'TKT-260455-2210',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope partly matches',k:'soft'}]},
+    {id:'PRP-337991',trade:'Plumbing',status:'Cancelled',meta:'$2,040 · May 30',scope:'Restroom faucet & drain repair',ticket:'TKT-260388-7742',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 8%',k:'soft'},{t:'Scope partly matches',k:'soft'}]}
   ];
   region.innerHTML=renderCard({
     tone:'blue', title:'Did this come from one of these proposals?', chip:'LIKELY MATCH',
-    say:'This work order looks like it came from one of these proposals your team already sent. Pick the right one to link &amp; qualify, or dismiss.',
+    say:'This work order looks like it came from one of these proposals your team already sent. Pick the right one to link, or dismiss — the ticket is never auto-qualified.',
     items:`<div class="plist">${C.map(c=>pitem(c,true)).join('')}</div>`,
     hlA:JOB_HL, hlB:{l:'None of these',t:'you continue with normal qualification.'},
-    actions:`<button class="btn btn-text" id="none">None of these</button><button class="btn btn-primary" id="link" disabled>Link &amp; qualify</button>`,
-    extra:linkConfirmBox('','Yes, link &amp; qualify')
+    actions:`<button class="btn btn-text" id="none">None of these</button><button class="btn btn-primary" id="link" disabled>Link proposal</button>`,
+    extra:linkConfirmBox('','Yes, link proposal')
   });
   let sel=null; const link=region.querySelector('#link'), acts=region.querySelector('#acts'), lc=region.querySelector('#linkConfirm');
   const priceFor=id=>(id==='PRP-338204'?'$1,850.00':id==='PRP-338110'?'$1,950.00':'$2,040.00');
@@ -457,53 +466,7 @@ function stateMulti(){
   region.querySelector('#none').onclick=()=>{enableActions();region.innerHTML=wentManual();toast('Dismissed — qualify manually');};
   link.onclick=()=>{if(!sel)return;lc.querySelector('.t').innerHTML=linkMsg(sel);lc.classList.add('show');acts.classList.add('hidden');};
   region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
-  region.querySelector('#doLink').onclick=()=>{lockQual({price:priceFor(sel)});region.innerHTML=qualified(sel);toast(sel+' linked · ticket qualified');};
-}
-
-/* high — auto-linked: prefilled, locked, review & confirm */
-const PROP={id:'PRP-338204',price:'$1,850.00'};
-function stateHigh(){
-  hNte.textContent='$1,860.00';   // the WO's own Customer NTE (matched proposal is $1,850)
-  lockQual(PROP); lockActions();
-  qfooter.innerHTML='';
-  const P={id:PROP.id,trade:'Plumbing',meta:'$1,850 · sent Jun 14',scope:'Restroom sink/faucet leak repair — replace cartridge & supply line',ticket:PRIOR_TKT,
-    chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'Price matches (within 1%)',k:'pos'}]};
-  region.innerHTML=renderCard({
-    cardMod:'is-linked', tone:'green', title:'Auto-linked proposal', chip:'PLEASE REVIEW',
-    say:"This work order looks like it came from a proposal your team already sent — we've linked it and pre-filled the qualification. Review and confirm, or unlink.",
-    items:pitem(P,false),
-    hlA:{l:'Confirm',t:"finishes qualification and posts the job to the preferred provider, or the job board if there isn't one."},
-    hlB:{l:'Unlink',t:`clears the pre-filled details; the proposal goes back to its previous ticket (${PRIOR_TKT}).`},
-    actions:`<button class="btn btn-text" id="unlinkBtn">Unlink</button><button class="btn btn-primary" id="confirmBtn">Confirm &amp; qualify</button>`,
-    extra:linkConfirmBox(linkMsg(PROP.id),'Yes, confirm &amp; qualify')+`
-         <div class="unlink-confirm inline" id="unlinkConfirm">
-           <div class="t">Unlink <b>${PROP.id}</b>? The pre-filled qualification is cleared and this becomes a standard ticket you fill in yourself.</div>
-           <textarea class="ureason" id="unlinkReason" placeholder="Why isn't this the right match? This helps improve auto-matching."></textarea>
-           <div class="wcount"><span id="wc">0</span>/150 words</div>
-           <div class="r"><button class="btn" style="background:#C62828;color:#fff" id="doUnlink">Unlink &amp; reset</button><button class="btn btn-text" id="cancelUnlink">Cancel</button></div>
-         </div>`
-  });
-  const acts=region.querySelector('#acts'), uc=region.querySelector('#unlinkConfirm'), lc=region.querySelector('#linkConfirm');
-  region.querySelector('#confirmBtn').onclick=()=>{lc.classList.add('show');acts.classList.add('hidden');};
-  region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
-  region.querySelector('#doLink').onclick=confirmHigh;
-  region.querySelector('#unlinkBtn').onclick=()=>{uc.classList.add('show');acts.classList.add('hidden');};
-  region.querySelector('#cancelUnlink').onclick=()=>{uc.classList.remove('show');acts.classList.remove('hidden');};
-  region.querySelector('#doUnlink').onclick=doUnlink;
-  const ta=region.querySelector('#unlinkReason'), wc=region.querySelector('#wc');
-  ta.addEventListener('input',()=>{let w=ta.value.trim().split(/\s+/).filter(Boolean);if(w.length>150){w=w.slice(0,150);ta.value=w.join(' ');}wc.textContent=w.length;});
-}
-function confirmHigh(){
-  region.innerHTML=qualified(PROP.id);
-  qfooter.innerHTML=`<div class="footer"><span class="grow"></span><span style="font-size:13px;color:var(--green);font-weight:600">✓ Qualification complete</span></div>`;
-  // fields stay locked as the final, proposal-sourced record
-  toast(PROP.id+' approved · ticket qualified');
-}
-function doUnlink(){
-  const rEl=region.querySelector('#unlinkReason'); const r=rEl?rEl.value.trim():'';
-  unlockQual();  // enables the qualification actions; Customer NTE stays the WO's own value
-  region.innerHTML=`<div class="pm"><div class="confirm grey"><span class="tick">↩</span><span><b>${PROP.id}</b> unlinked and returned to ${PRIOR_TKT}. Qualification reset &amp; unlocked — qualify this ticket manually below.${r?' Reason saved.':''}</span><a href="#" onclick="render('high');return false">Undo</a></div></div>`;
-  toast(r?'Unlinked · reason saved':'Unlinked · qualification unlocked');
+  region.querySelector('#doLink').onclick=()=>{lockQual({price:priceFor(sel)});region.innerHTML=linked(sel);toast(sel+' linked · qualification pre-filled');};
 }
 
 /* low / none — no task surfaces */
@@ -511,16 +474,16 @@ function stateLow(){hNte.textContent='$0.00';clearFill();region.innerHTML=`<div 
 function stateNone(){hNte.textContent='$0.00';clearFill();region.innerHTML='';}
 
 /* shared end states */
-/* link/confirm → auto-qualify + tell the NAT what happens to the job */
-function qualified(id){setStatus(true);return `<div class="pm">
-  <div class="confirm"><span class="tick">✓</span><span>Done — we've linked proposal <b>${id}</b>, marked it approved, and qualified this ticket.</span><a href="#" onclick="return false">View proposal</a></div>
-  <div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-brd);border-radius:10px;padding:11px 13px;font-size:13px;color:#245C27;display:flex;gap:9px"><span>📤</span><span>${jobLine(id)}</span></div>
+/* link → proposal approved + qualification pre-filled; NAT completes the steps manually (no auto-qualification) */
+function linked(id){enableActions();setStatus(false);return `<div class="pm">
+  <div class="confirm"><span class="tick">✓</span><span>Proposal <b>${id}</b> linked and marked approved. Qualification is pre-filled below — review and complete the remaining steps to qualify this ticket.</span><a href="#" onclick="return false">View proposal</a></div>
+  <div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-brd);border-radius:10px;padding:11px 13px;font-size:13px;color:#245C27;display:flex;gap:9px"><span>📤</span><span>Once you finish qualification: ${jobLine(id)}</span></div>
 </div>`;}
 /* dismiss/none → NAT qualifies manually (actions now enabled) */
 function wentManual(){return `<div class="pm"><div class="confirm grey"><span class="tick">—</span><span>No proposal linked — continue qualifying this ticket manually below.</span><a href="#" onclick="render(current);return false">Undo</a></div></div>`;}
 
 let current='single';
-const R={single:stateSingle,multi:stateMulti,high:stateHigh,low:stateLow,none:stateNone};
+const R={single:stateSingle,multi:stateMulti,low:stateLow,none:stateNone};
 function render(s){unlockQual();current=s;R[s]();}
 document.getElementById('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(b.dataset.s);});
 render('single');
