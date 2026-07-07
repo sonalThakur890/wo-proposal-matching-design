@@ -365,7 +365,7 @@ function pitem(p,sel){return `<div class="pitem${sel?' prow':''}"${sel?` data-id
     <div class="pbody">
       <div class="top"><span class="prp">${p.id}</span><span class="trade">${p.trade}</span>${statusEl(p.status)}<span class="meta-line">${p.meta}</span></div>
       <div class="scope1">${p.scope}</div>
-      <div class="plink"><a href="#" onclick="${sel?'event.stopPropagation();':''}return false">View proposal ↗</a><span class="orig">Ticket: ${p.ticket}</span></div>
+      <div class="plink"><a href="#" onclick="${sel?'event.stopPropagation();':''}return false">View proposal ↗</a><span class="orig">Ticket: ${p.ticket} · WO: ${p.wo}</span></div>
       <div class="mrow">${p.chips.map(chipEl).join('')}</div>
     </div>
   </div>`;}
@@ -398,7 +398,7 @@ function clearFill(){clearNte();}
 /* single — confirm (covers high-confidence matches too: never auto-linked, NAT decides) */
 function stateSingle(){
   hNte.textContent='$1,950.00'; clearFill(); lockActions();
-  const P={id:'PRP-338204',trade:'Plumbing',status:'Submitted',meta:'$1,850 · sent Jun 14',scope:'Restroom sink/faucet leak repair — replace cartridge & supply line',ticket:'TKT-260401-3391',
+  const P={id:'PRP-338204',trade:'Plumbing',status:'Submitted',meta:'$1,850 · sent Jun 14',scope:'Restroom sink/faucet leak repair — replace cartridge & supply line',ticket:'TKT-260401-3391',wo:'354112087',
     chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 5%',k:'soft'},{t:'Scope partly matches',k:'soft'}]};
   region.innerHTML=renderCard({
     tone:'blue', title:'Did this come from a proposal?', chip:'LIKELY MATCH',
@@ -419,9 +419,9 @@ function stateSingle(){
 function stateMulti(){
   hNte.textContent='$1,900.00'; clearFill(); lockActions();
   const C=[
-    {id:'PRP-338204',trade:'Plumbing',status:'Submitted',meta:'$1,850 · Jun 14',scope:'Restroom sink/faucet leak repair',ticket:'TKT-260401-3391',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope closely matches',k:'pos'}]},
-    {id:'PRP-338110',trade:'Plumbing',status:'Draft',meta:'$1,950 · Jun 20',scope:'Faucet cartridge replacement (multiple fixtures)',ticket:'TKT-260455-2210',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope partly matches',k:'soft'}]},
-    {id:'PRP-337991',trade:'Plumbing',status:'Cancelled',meta:'$2,040 · May 30',scope:'Restroom faucet & drain repair',ticket:'TKT-260388-7742',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 8%',k:'soft'},{t:'Scope partly matches',k:'soft'}]}
+    {id:'PRP-338204',trade:'Plumbing',status:'Submitted',meta:'$1,850 · Jun 14',scope:'Restroom sink/faucet leak repair',ticket:'TKT-260401-3391',wo:'354112087',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope closely matches',k:'pos'}]},
+    {id:'PRP-338110',trade:'Plumbing',status:'Draft',meta:'$1,950 · Jun 20',scope:'Faucet cartridge replacement (multiple fixtures)',ticket:'TKT-260455-2210',wo:'354876411',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 3%',k:'pos'},{t:'Scope partly matches',k:'soft'}]},
+    {id:'PRP-337991',trade:'Plumbing',status:'Cancelled',meta:'$2,040 · May 30',scope:'Restroom faucet & drain repair',ticket:'TKT-260388-7742',wo:'353904230',chips:[{t:'Same store',k:'pos'},{t:'Same trade',k:'pos'},{t:'NTE within 8%',k:'soft'},{t:'Scope partly matches',k:'soft'}]}
   ];
   region.innerHTML=renderCard({
     tone:'blue', title:'Did this come from one of these proposals?', chip:'LIKELY MATCH',
