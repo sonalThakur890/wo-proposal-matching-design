@@ -365,7 +365,7 @@ function pitem(p,sel){return `<div class="pitem${sel?' prow':''}"${sel?` data-id
     <div class="pbody">
       <div class="top"><span class="prp">${p.id}</span><span class="trade">${p.trade}</span>${statusEl(p.status)}<span class="meta-line">${p.meta}</span></div>
       <div class="scope1">${p.scope}</div>
-      <div class="plink"><a href="#" onclick="${sel?'event.stopPropagation();':''}return false">View proposal ↗</a><span class="orig">submitted on ${p.ticket}</span></div>
+      <div class="plink"><a href="#" onclick="${sel?'event.stopPropagation();':''}return false">View proposal ↗</a><span class="orig">Ticket: ${p.ticket}</span></div>
       <div class="mrow">${p.chips.map(chipEl).join('')}</div>
     </div>
   </div>`;}
