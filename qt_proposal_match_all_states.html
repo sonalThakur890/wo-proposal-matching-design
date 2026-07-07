@@ -149,20 +149,6 @@
   .lockhint{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);margin:12px 0 0 2px}
   .lockhint .k{font-size:13px}
 
-  /* locked qualification treatment */
-  .qcard.locked .step .field .inp{background:#F4F7FA;border-radius:7px 7px 0 0;padding:8px 10px;color:var(--ink-2)}
-  .qcard.locked .step .field .inp.sel::after{opacity:.4}
-  .qcard.locked .step .opts,.qcard.locked .step .field .inp{pointer-events:none}
-  .qcard.locked .step .radio{opacity:.75}
-  .lk{display:none;margin-left:auto;color:var(--faint);font-size:12px}
-  .qcard.locked .lk{display:inline}
-  .frompill{display:none;font-size:10px;font-weight:700;color:var(--green);background:var(--green-bg);border:1px solid var(--green-brd);border-radius:20px;padding:1px 7px;margin-left:8px;vertical-align:middle}
-  .qcard.locked .frompill{display:inline-block}
-  /* Customer NTE stays the WO's own value and editable even when other fields are locked */
-  .qcard.locked .field.keep-editable .inp{pointer-events:auto;background:#fff;color:var(--ink)}
-  .nte-hint{display:none;font-size:11.5px;color:var(--faint);margin-top:5px}
-  .qcard.locked .nte-hint{display:block}
-
   /* gate qualification action buttons until NAT resolves the match */
   .qcard.actions-locked .qbtn{background:#C4D0DC!important;color:#fff!important;pointer-events:none;border-color:transparent!important;box-shadow:none}
   .gate-note{font-size:11.5px;color:var(--faint);display:none;align-items:center;gap:6px;margin-top:8px}
@@ -314,8 +300,8 @@
           <div class="lab">Step 1</div>
           <div class="row"><h4>Request Type and SLA</h4><span class="caret">⌃</span></div>
           <div class="hint">Fill in request type and SLA details</div>
-          <div class="field"><label>What is the service line? <span class="req">*</span><span class="frompill">from proposal</span></label><div class="inp sel">Plumbing<span class="lk">🔒</span></div></div>
-          <div class="field"><label>What is the service type? <span class="req">*</span><span class="frompill">from proposal</span></label><div class="inp sel">Faucet/Sink Repair and Replacement<span class="lk">🔒</span></div></div>
+          <div class="field"><label>What is the service line? <span class="req">*</span></label><div class="inp sel">Plumbing</div></div>
+          <div class="field"><label>What is the service type? <span class="req">*</span></label><div class="inp sel">Faucet/Sink Repair and Replacement</div></div>
           <div class="q">Does the customer need a proposal for this service request?</div>
           <div class="opts"><span class="radio"><span class="dot"></span>Yes, need a provider estimate to create a proposal.</span><span class="radio"><span class="dot"></span>Yes, I can self quote and create a proposal</span></div>
           <div class="opts" style="margin-top:12px"><span class="radio on"><span class="dot"></span>No proposal is needed.</span></div>
@@ -329,13 +315,12 @@
           <div class="lab">Step 2</div>
           <div class="row"><h4>Scope Details</h4><span class="caret">⌃</span></div>
           <div class="hint">Fill in scope details</div>
-          <div class="field keep-editable" id="nteWrap"><label>Customer NTE</label>
+          <div class="field" id="nteWrap"><label>Customer NTE</label>
             <div style="display:flex;gap:14px;align-items:flex-end"><div class="inp" id="nteField" style="flex:1">$</div><button class="btn btn-primary qbtn" id="nteUpdate" style="padding:9px 18px">Update</button></div>
-            <div class="nte-hint">Kept from the work order — not changed by the linked proposal. Edit if needed.</div>
           </div>
           <div class="q">Is it a project?</div>
           <div class="opts" id="projOpts"><span class="radio"><span class="dot"></span>Yes</span><span class="radio"><span class="dot"></span>No</span></div>
-          <div class="field" style="margin-top:18px"><label>Type of work<span class="frompill">from proposal</span></label><div class="inp sel" id="typeWork">&nbsp;<span class="lk">🔒</span></div></div>
+          <div class="field" style="margin-top:18px"><label>Type of work</label><div class="inp sel" id="typeWork">&nbsp;</div></div>
           <div class="step-actions"><button class="btn btn-primary qbtn">Save &amp; Next</button></div>
         </div>
 
@@ -352,11 +337,9 @@ const TKT='TKT-260701-5040', PRIOR_TKT='TKT-260401-3391';
 const region=document.getElementById('matchRegion');
 const hNte=document.getElementById('hNte'), nteField=document.getElementById('nteField');
 const qcard=document.querySelector('.qcard'), qfooter=document.getElementById('qfooter');
-const typeWork=document.getElementById('typeWork'), projOpts=document.getElementById('projOpts');
 const taskStatus=document.getElementById('taskStatus');
 function setStatus(done){taskStatus.textContent=done?'Done':'In Progress';taskStatus.classList.toggle('done',done);}
 let tt; function toast(m){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
-const LK='<span class="lk">🔒</span>';
 function setNte(v){nteField.textContent=v;}
 function clearNte(){nteField.textContent='$';}
 const defaultFooter='<div class="qdone"><button class="btn-done qbtn">Qualification Done, Ready for Jobs</button></div>';
@@ -371,7 +354,7 @@ function jobLine(id){
 }
 function lockActions(){qcard.classList.add('actions-locked');}
 function enableActions(){qcard.classList.remove('actions-locked');}
-function linkMsg(id){return `We'll link <b>${id}</b> to this ticket, mark it approved, and pre-fill the qualification details from it. The ticket is <b>not</b> auto-qualified — you review and complete the remaining steps yourself.`;}
+function linkMsg(id){return `We'll link <b>${id}</b> to this ticket and mark it approved. Qualification stays exactly as today — you fill in all the details manually.`;}
 
 /* ===== shared building blocks: same structure for every state ===== */
 function chipEl(c){const cls=c.k==='pos'?'mchip':c.k==='soft'?'mchip soft':'mchip neu';const g=c.k==='pos'?'✓ ':c.k==='soft'?'≈ ':'';return `<span class="${cls}">${g}${c.t}</span>`;}
@@ -402,23 +385,14 @@ function renderCard(o){return `<div class="pm"><div class="mcard ${o.cardMod||''
       ${o.extra||''}
     </div>
   </div></div>`;}
-const JOB_HL={l:'Link proposal',t:"we mark the proposal approved and pre-fill the qualification — you review and complete the remaining steps manually."};
+const JOB_HL={l:'Link proposal',t:"we mark the proposal approved; you fill in the qualification manually as today."};
 
-/* prefill + lock qualification from the linked proposal
-   NOTE: Customer NTE is intentionally NOT copied from the proposal — the WO's own NTE is kept. */
-function lockQual(p){
-  setNte(hNte.textContent);   // keep the work order's own Customer NTE, editable
-  typeWork.innerHTML='Repair'+LK;
-  projOpts.children[0].classList.remove('on'); projOpts.children[1].classList.add('on'); // project = No
-  qcard.classList.add('locked');
-}
-function unlockQual(){
-  qcard.classList.remove('locked'); enableActions(); setStatus(false);
-  clearNte(); typeWork.innerHTML='&nbsp;'+LK;
-  projOpts.children[0].classList.remove('on'); projOpts.children[1].classList.remove('on');
+/* linking a proposal does NOT touch qualification fields — NAT fills everything manually as today */
+function resetQual(){
+  enableActions(); setStatus(false);
+  clearNte();
   qfooter.innerHTML=defaultFooter;
 }
-function prefill(v){setNte(v);hNte.textContent=v;} // light prefill used by single/multi on link
 function clearFill(){clearNte();}
 
 /* single — confirm (covers high-confidence matches too: never auto-linked, NAT decides) */
@@ -438,7 +412,7 @@ function stateSingle(){
   region.querySelector('#notMatch').onclick=()=>{enableActions();region.innerHTML=wentManual();toast('Dismissed — qualify manually');};
   region.querySelector('#link').onclick=()=>{lc.querySelector('.t').innerHTML=linkMsg(P.id);lc.classList.add('show');acts.classList.add('hidden');};
   region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
-  region.querySelector('#doLink').onclick=()=>{lockQual({price:'$1,850.00'});region.innerHTML=linked(P.id);toast(P.id+' linked · qualification pre-filled');};
+  region.querySelector('#doLink').onclick=()=>{region.innerHTML=linked(P.id);toast(P.id+' linked · proposal approved');};
 }
 
 /* multiple — choose */
@@ -458,7 +432,6 @@ function stateMulti(){
     extra:linkConfirmBox('','Yes, link proposal')
   });
   let sel=null; const link=region.querySelector('#link'), acts=region.querySelector('#acts'), lc=region.querySelector('#linkConfirm');
-  const priceFor=id=>(id==='PRP-338204'?'$1,850.00':id==='PRP-338110'?'$1,950.00':'$2,040.00');
   region.querySelectorAll('.prow').forEach(el=>{
     const pick=()=>{region.querySelectorAll('.prow').forEach(r=>{r.classList.remove('sel');r.setAttribute('aria-checked','false')});el.classList.add('sel');el.setAttribute('aria-checked','true');sel=el.dataset.id;link.disabled=false;};
     el.onclick=pick; el.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();pick();}};
@@ -466,7 +439,7 @@ function stateMulti(){
   region.querySelector('#none').onclick=()=>{enableActions();region.innerHTML=wentManual();toast('Dismissed — qualify manually');};
   link.onclick=()=>{if(!sel)return;lc.querySelector('.t').innerHTML=linkMsg(sel);lc.classList.add('show');acts.classList.add('hidden');};
   region.querySelector('#cancelLink').onclick=()=>{lc.classList.remove('show');acts.classList.remove('hidden');};
-  region.querySelector('#doLink').onclick=()=>{lockQual({price:priceFor(sel)});region.innerHTML=linked(sel);toast(sel+' linked · qualification pre-filled');};
+  region.querySelector('#doLink').onclick=()=>{region.innerHTML=linked(sel);toast(sel+' linked · proposal approved');};
 }
 
 /* low / none — no task surfaces */
@@ -474,9 +447,9 @@ function stateLow(){hNte.textContent='$0.00';clearFill();region.innerHTML=`<div 
 function stateNone(){hNte.textContent='$0.00';clearFill();region.innerHTML='';}
 
 /* shared end states */
-/* link → proposal approved + qualification pre-filled; NAT completes the steps manually (no auto-qualification) */
+/* link → proposal approved; qualification untouched — NAT fills the steps manually as today */
 function linked(id){enableActions();setStatus(false);return `<div class="pm">
-  <div class="confirm"><span class="tick">✓</span><span>Proposal <b>${id}</b> linked and marked approved. Qualification is pre-filled below — review and complete the remaining steps to qualify this ticket.</span><a href="#" onclick="return false">View proposal</a></div>
+  <div class="confirm"><span class="tick">✓</span><span>Proposal <b>${id}</b> linked and marked approved. Qualify this ticket below as usual — nothing is pre-filled or locked.</span><a href="#" onclick="return false">View proposal</a></div>
   <div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-brd);border-radius:10px;padding:11px 13px;font-size:13px;color:#245C27;display:flex;gap:9px"><span>📤</span><span>Once you finish qualification: ${jobLine(id)}</span></div>
 </div>`;}
 /* dismiss/none → NAT qualifies manually (actions now enabled) */
@@ -484,7 +457,7 @@ function wentManual(){return `<div class="pm"><div class="confirm grey"><span cl
 
 let current='single';
 const R={single:stateSingle,multi:stateMulti,low:stateLow,none:stateNone};
-function render(s){unlockQual();current=s;R[s]();}
+function render(s){resetQual();current=s;R[s]();}
 document.getElementById('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(b.dataset.s);});
 render('single');
 </script>
