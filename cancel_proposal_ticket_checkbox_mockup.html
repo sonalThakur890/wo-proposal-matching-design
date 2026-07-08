@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancel Proposal + Cancel Ticket Checkbox — UX Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #f5f5f5; color: #121212; font-size: 14px; line-height: 1.4; }
+
+  .tabs-bar { background: #1a3a4a; display: flex; align-items: center; padding: 0 20px; height: 48px; }
+  .tab-btn {
+    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,0.6); background: none; border: none; padding: 14px 16px;
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.9); }
+  .tab-btn.active { color: #fff; border-bottom-color: #fff; }
+  .scenario-hint { text-align: center; padding: 10px 20px; font-size: 12px; color: #666; background: #fff; border-bottom: 1px solid #e0e0e0; }
+
+  .backdrop {
+    position: fixed; top: 90px; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 100;
+    display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 20px;
+  }
+  .backdrop.hidden { display: none; }
+
+  .modal {
+    background: #fff; border-radius: 16px; padding: 24px; width: 560px;
+    box-shadow: rgba(0,0,0,0.05) 0px 5px 22px 24px; color: #121212;
+  }
+  .modal-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .modal-title .material-icons-outlined { color: #d32f2f; font-size: 22px; }
+
+  .field-label { font-size: 13px; font-weight: 500; color: #424242; margin-bottom: 6px; }
+  .field-label .req { color: #d32f2f; }
+
+  .modal-select {
+    width: 100%; padding: 13px 36px 13px 14px; font-family: 'Poppins', sans-serif;
+    font-size: 14px; color: #121212; background: #fff;
+    border: 1px solid #bdbdbd; border-radius: 8px; appearance: none; cursor: pointer;
+    outline: none; transition: border-color 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  .modal-select:focus { border-color: #08568b; }
+  .modal-select.placeholder { color: #757575; }
+
+  .free-text-wrap { margin-top: 12px; }
+  .free-textarea {
+    width: 100%; min-height: 80px; padding: 12px 14px; font-family: 'Poppins', sans-serif;
+    font-size: 14px; color: #121212; background: #f5f5f5;
+    border: 1px solid transparent; border-radius: 8px; outline: none; resize: vertical; line-height: 1.5;
+  }
+  .free-textarea:focus { border-color: #08568b; background: #fff; }
+  .free-textarea::placeholder { color: #9e9e9e; }
+  .char-note { display: flex; justify-content: space-between; font-size: 11px; color: #9e9e9e; margin-top: 4px; }
+  .char-note .count.error { color: #d32f2f; }
+  .char-note .count.valid { color: #2e7d32; }
+
+  .cancel-ticket-box {
+    border: 1px solid #e0e0e0; border-radius: 12px; margin-top: 18px; background: #fff;
+    transition: all 0.15s; overflow: hidden;
+  }
+  .cancel-ticket-box.checked { border-color: #08568b; background: #fbfdfe; }
+  .cb-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; cursor: pointer; user-select: none; }
+  .cb-row:hover { background: #fafafa; }
+  .checkbox-box {
+    width: 20px; height: 20px; border-radius: 4px; border: 2px solid #bdbdbd; flex-shrink: 0;
+    margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: #fff;
+  }
+  .cancel-ticket-box.checked .checkbox-box { background: #08568b; border-color: #08568b; }
+  .check-icon { font-size: 16px; color: #fff; display: none; font-weight: 700; }
+  .cancel-ticket-box.checked .check-icon { display: block; }
+  .cb-title { font-size: 14px; font-weight: 500; }
+  .cb-desc { font-size: 12px; color: #757575; margin-top: 2px; line-height: 1.45; }
+
+  .ct-details { padding: 0 16px 16px 48px; border-top: 1px dashed #e0e0e0; margin: 0 16px 0 16px; padding: 14px 0 16px 32px; animation: slideIn 0.25s ease-out; }
+  .ct-details.hidden { display: none; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .warning-banner {
+    background: #fdf3e0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .warning-banner .material-icons-outlined { color: #e6a23c; font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+  .warning-banner p { font-size: 12px; color: #6d4c1b; line-height: 1.5; }
+  .warning-banner strong { font-weight: 600; }
+
+  .prefill-note { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #757575; margin: 6px 0 14px; }
+  .prefill-note .material-icons-outlined { font-size: 15px; color: #08568b; }
+
+  .radio-question { font-size: 13.5px; font-weight: 500; color: #121212; margin-bottom: 8px; }
+  .radio-row { display: flex; gap: 24px; }
+  .radio-opt { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 14px; }
+  .radio-opt .radio-circle { margin-top: 2px; }
+  .radio-circle {
+    width: 18px; height: 18px; border-radius: 50%; border: 2px solid #757575; display: flex;
+    align-items: center; justify-content: center; transition: all 0.15s; background: #fff;
+  }
+  .radio-opt.selected .radio-circle { border-color: #08568b; }
+  .radio-dot { width: 9px; height: 9px; border-radius: 50%; background: #08568b; display: none; }
+  .radio-opt.selected .radio-dot { display: block; }
+
+  .outcome-note { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; color: #757575; margin-top: 16px; line-height: 1.45; }
+  .outcome-note .material-icons-outlined { font-size: 16px; color: #9e9e9e; flex-shrink: 0; }
+
+  .btn-row { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 20px; }
+  .btn-close {
+    font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; color: #121212;
+    background: #ebeced; border: none; border-radius: 8px; padding: 10px 22px; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-close:hover { background: #dfe1e3; }
+  .btn-submit {
+    font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; color: #fff;
+    background: #d1d8dc; border: none; border-radius: 8px; padding: 10px 24px; cursor: default; transition: all 0.2s;
+  }
+  .btn-submit.active { background: #08568b; cursor: pointer; }
+  .btn-submit.active:hover { background: #064570; }
+
+  .outcomes-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .outcomes-table th {
+    text-align: left; font-size: 12px; font-weight: 600; color: #424242; background: #f5f5f5;
+    padding: 10px 14px; border-bottom: 1px solid #e0e0e0;
+  }
+  .outcomes-table td { padding: 14px; font-size: 13px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .item-id { font-weight: 500; color: #121212; }
+  .item-sub { font-size: 12px; color: #757575; margin-top: 2px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 6px; }
+  .pill.cancelled { background: #fdecea; color: #c62828; border: 1px solid #f5c6c0; }
+  .pill.closed { background: #e8f1f8; color: #08568b; border: 1px solid #bcd6e8; }
+  .pill.nocharge { background: #fdf3e0; color: #9a6a1c; border: 1px solid #eed9ae; }
+  .btn-outline {
+    font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; color: #08568b;
+    background: #fff; border: 1px solid #08568b; border-radius: 8px; padding: 9px 22px; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-outline:hover { background: #f0f6fa; }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: #2e7d32; color: #fff; font-size: 13px; padding: 12px 20px; border-radius: 8px;
+    display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.25); z-index: 300;
+  }
+  .toast.hidden { display: none; }
+  .toast .material-icons-outlined { font-size: 18px; }
+</style>
+</head>
+<body>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="showScenario(1, this)">1 · Cancel proposal — ticket question</button>
+  <button class="tab-btn" onclick="showScenario(2, this)">2 · "Cancel it too" — reason suggested</button>
+  <button class="tab-btn" onclick="showScenario(3, this)">3 · Review cancellation outcomes</button>
+  <button class="tab-btn" onclick="showScenario(4, this)">4 · Ticket timeline after cancellation</button>
+</div>
+<div class="scenario-hint" id="hint">Existing "Add reason for cancellation" modal with the new associated-ticket question. Shown only when the ticket has no other open work.</div>
+
+<!-- ══════════ Scenario 1 & 2: Cancel proposal modal ══════════ -->
+<div class="backdrop" id="modal-main">
+  <div class="modal">
+    <div class="modal-title"><span class="material-icons-outlined">error_outline</span>Add reason for cancellation</div>
+
+    <div class="field-label">Proposal cancellation reason <span class="req">*</span></div>
+    <select class="modal-select placeholder" id="proposal-reason" onchange="onProposalReason(this)">
+      <option value="" disabled selected>Select cancellation reason</option>
+      <option>Within Current Contracted Scope</option>
+      <option>Duplicate</option>
+      <option>Customer Preference</option>
+      <option value="other">Other</option>
+    </select>
+
+    <div class="free-text-wrap hidden" id="proposal-freetext">
+      <div class="field-label">Add Reason <span class="req">*</span></div>
+      <textarea class="free-textarea" placeholder="Please enter the reason" maxlength="200" oninput="onFreeText(this)"></textarea>
+      <div class="char-note"><span>Minimum characters is 10, maximum is 200</span><span class="count" id="ftcount">0/200</span></div>
+    </div>
+
+    <!-- New: associated ticket question -->
+    <div class="cancel-ticket-box" id="ct-box" style="padding: 14px 16px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
+        <span class="material-icons-outlined" style="color: #08568b; font-size: 20px; margin-top: 1px;">confirmation_number</span>
+        <div>
+          <div class="cb-title">Do you still need the associated ticket?</div>
+          <div class="cb-desc">TKT-231018-4230</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-left: 30px;">
+        <div class="radio-opt" id="opt-keep" onclick="pickTicketChoice('keep')">
+          <div class="radio-circle"><div class="radio-dot"></div></div>
+          <div>
+            <div style="font-size: 14px;">Yes, keep the ticket open</div>
+            <div class="cb-desc">You can always cancel it later from Raise a Request</div>
+          </div>
+        </div>
+        <div class="radio-opt" id="opt-cancel" onclick="pickTicketChoice('cancel')">
+          <div class="radio-circle"><div class="radio-dot"></div></div>
+          <div>
+            <div style="font-size: 14px;">No, cancel it too</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ct-details hidden" id="ct-details" style="margin-left: 30px; margin-top: 12px; padding: 14px 0 0 0; border-top: 1px dashed #e0e0e0;">
+        <div class="field-label">Reason <span class="req">*</span></div>
+        <select class="modal-select" id="ticket-reason">
+          <option selected>Proposal/Pricing only ticket</option>
+          <option>Customer cancelled work order</option>
+          <option>Duplicate ticket</option>
+          <option>To be continued under routine tickets</option>
+          <option>Outside DMG's responsibility</option>
+          <option>Declining the workorder</option>
+          <option>Seasonal cancellation</option>
+        </select>
+        <div class="prefill-note"><span class="material-icons-outlined">auto_awesome</span>We've suggested a reason — change it if it doesn't fit.</div>
+
+        <div class="radio-question">Has this been confirmed with the customer? <span class="req">*</span></div>
+        <div class="radio-row">
+          <div class="radio-opt" id="radio-yes" onclick="pickRadio('yes')"><div class="radio-circle"><div class="radio-dot"></div></div>Yes</div>
+          <div class="radio-opt" id="radio-no" onclick="pickRadio('no')"><div class="radio-circle"><div class="radio-dot"></div></div>No</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="outcome-note" id="review-note" style="display:none;">
+      <span class="material-icons-outlined">info</span>
+      <span>Nothing is cancelled yet — you'll review what happens to the work order and jobs on the next step.</span>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-close">Close</button>
+      <button class="btn-submit" id="btn-submit" onclick="trySubmit()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ Scenario 3: Review Cancellation Outcomes ══════════ -->
+<div class="backdrop hidden" id="modal-outcomes">
+  <div class="modal">
+    <div class="modal-title" style="margin-bottom:6px;">Review Cancellation Outcomes</div>
+    <p style="font-size:13px; color:#757575; margin-bottom:14px;">Proposal PRP-260707-0009 was cancelled. Confirm the outcomes below to cancel the ticket.</p>
+    <table class="outcomes-table">
+      <thead><tr><th>Item</th><th>Current Status</th><th>Result if you continue</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><div class="item-id">PRP-260707-0009</div><div class="item-sub">Proposal</div></td>
+          <td>Awaiting Pricing</td>
+          <td><span class="pill cancelled">Cancelled</span></td>
+        </tr>
+        <tr>
+          <td><div class="item-id">TKT-231018-4230</div><div class="item-sub">Ticket</div></td>
+          <td>Proposal in Progress</td>
+          <td><span class="pill cancelled">Cancelled</span></td>
+        </tr>
+        <tr>
+          <td><div class="item-id">WO-231018-1641</div><div class="item-sub">Work order</div></td>
+          <td>Open</td>
+          <td><span class="pill cancelled">Cancelled</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="btn-row">
+      <button class="btn-outline">Close</button>
+      <button class="btn-submit active" onclick="showToast()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ Scenario 4: Ticket timeline after cancellation ══════════ -->
+<div class="backdrop hidden" id="modal-timeline" style="background: #f5f5f5; align-items: flex-start;">
+  <div style="width: 780px; max-width: 100%;">
+    <div style="background: #fdecea; border: 1px solid #f5c6c0; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px;">
+      <span class="material-icons-outlined" style="color: #c62828; font-size: 20px; margin-top: 1px;">cancel</span>
+      <div>
+        <div style="font-size: 14px; font-weight: 600; color: #c62828;">This ticket has been cancelled</div>
+        <div style="font-size: 13px; color: #6d3530; margin-top: 2px;">Cancelled via proposal cancellation (PRP-260707-0009) by Sonal Kumari Thakur on Jul 08, 2026 · Reason: Proposal/Pricing only ticket</div>
+      </div>
+    </div>
+    <div style="background: #fff; border-radius: 12px; box-shadow: rgba(0,0,0,0.04) 0 2px 10px 2px; overflow: hidden;">
+      <div style="display: flex; border-bottom: 1px solid #e0e0e0;">
+        <div style="flex:1; text-align:center; padding: 14px; font-size: 14px; color: #757575;">Associates</div>
+        <div style="flex:1; text-align:center; padding: 14px; font-size: 14px; font-weight: 500; color: #121212; background: #f5f5f5; border-bottom: 2px solid #08568b;">Timeline</div>
+        <div style="flex:1; text-align:center; padding: 14px; font-size: 14px; color: #757575;">Communication History</div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 6px;">
+        <span style="font-size: 17px; font-weight: 600; color: #0a4d75;">Timeline</span>
+        <select class="modal-select" style="width: 130px; padding: 8px 32px 8px 12px; font-size: 13px;"><option>All</option></select>
+      </div>
+      <div style="padding: 10px 20px 22px;">
+
+        <div style="display: flex; gap: 16px; padding: 12px 0;">
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #c62828; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <span class="material-icons-outlined" style="color:#fff; font-size:18px;">cancel</span>
+            </div>
+            <div style="width: 2px; flex:1; background: #e0e0e0; margin-top: 6px;"></div>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; gap: 12px;">
+              <div style="font-size: 14px; color: #121212;">Ticket TKT-231018-4230 was <strong>cancelled via proposal cancellation</strong> of PRP-260707-0009 by <strong>Sonal Kumari Thakur</strong>. Cancellation reason: <strong>Proposal/Pricing only ticket</strong>.</div>
+              <div style="font-size: 13px; color: #757575; white-space: nowrap;">Ticket Cancellation</div>
+            </div>
+            <div style="font-size: 12.5px; color: #757575; margin-top: 4px;">July 08, 2026 at 11:42 am EDT</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; padding: 12px 0;">
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #08568b; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <span class="material-icons-outlined" style="color:#fff; font-size:18px;">description</span>
+            </div>
+            <div style="width: 2px; flex:1; background: #e0e0e0; margin-top: 6px;"></div>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; gap: 12px;">
+              <div style="font-size: 14px; color: #121212;">Proposal PRP-260707-0009 was <strong>cancelled</strong> by <strong>Sonal Kumari Thakur</strong>. Reason: Customer Preference.</div>
+              <div style="font-size: 13px; color: #757575; white-space: nowrap;">Proposal Modification</div>
+            </div>
+            <div style="font-size: 12.5px; color: #757575; margin-top: 4px;">July 08, 2026 at 11:42 am EDT</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; padding: 12px 0;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #08568b; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <span class="material-icons-outlined" style="color:#fff; font-size:18px;">swap_horiz</span>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; gap: 12px;">
+              <div style="font-size: 14px; color: #121212;">State was modified from TICKET_READY_FOR_BILLING to TICKET_CANCELLED for TKT-231018-4230.</div>
+              <div style="font-size: 13px; color: #757575; white-space: nowrap;">Ticket Modification</div>
+            </div>
+            <div style="font-size: 12.5px; color: #757575; margin-top: 4px;">July 08, 2026 at 11:42 am EDT</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast">
+  <span class="material-icons-outlined">check_circle</span>
+  Proposal and ticket TKT-231018-4230 cancelled — reason: Proposal/Pricing only ticket
+</div>
+
+<script>
+  var ticketChoice = null;
+  var radioPicked = false;
+
+  function showScenario(n, btn) {
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('toast').classList.add('hidden');
+    var hints = {
+      1: 'Existing "Add reason for cancellation" modal with the new associated-ticket question. Shown only when the ticket has no other open work.',
+      2: '"Cancel it too" selected: section expands with a suggested (editable) reason and the customer-confirmation question from the existing cancel-ticket flow.',
+      3: 'After Submit: the existing outcomes review runs for the combined action. Proposal row shown as already cancelled; Confirm commits the ticket cancellation.',
+      4: 'Attribution: red cancellation banner on the ticket page + timeline entries showing who cancelled, via which proposal, and with what reason.'
+    };
+    document.getElementById('hint').textContent = hints[n];
+    document.getElementById('modal-main').classList.toggle('hidden', n >= 3);
+    document.getElementById('modal-outcomes').classList.toggle('hidden', n !== 3);
+    document.getElementById('modal-timeline').classList.toggle('hidden', n !== 4);
+    if (n === 2 && ticketChoice !== 'cancel') pickTicketChoice('cancel');
+    if (n === 1 && ticketChoice !== null) pickTicketChoice(null);
+  }
+
+  function pickTicketChoice(which) {
+    ticketChoice = which;
+    document.getElementById('opt-keep').classList.toggle('selected', which === 'keep');
+    document.getElementById('opt-cancel').classList.toggle('selected', which === 'cancel');
+    var cancelling = which === 'cancel';
+    document.getElementById('ct-box').classList.toggle('checked', cancelling);
+    document.getElementById('ct-details').classList.toggle('hidden', !cancelling);
+    document.getElementById('review-note').style.display = cancelling ? 'flex' : 'none';
+    updateSubmit();
+  }
+
+  function onProposalReason(sel) {
+    sel.classList.remove('placeholder');
+    document.getElementById('proposal-freetext').classList.toggle('hidden', sel.value !== 'other');
+    updateSubmit();
+  }
+
+  function onFreeText(ta) {
+    var c = document.getElementById('ftcount');
+    c.textContent = ta.value.length + '/200';
+    c.className = 'count ' + (ta.value.length >= 10 ? 'valid' : 'error');
+    updateSubmit();
+  }
+
+  function pickRadio(which) {
+    radioPicked = true;
+    document.getElementById('radio-yes').classList.toggle('selected', which === 'yes');
+    document.getElementById('radio-no').classList.toggle('selected', which === 'no');
+    updateSubmit();
+  }
+
+  function updateSubmit() {
+    var reason = document.getElementById('proposal-reason').value;
+    var ok = !!reason;
+    if (reason === 'other') {
+      var ta = document.querySelector('#proposal-freetext textarea');
+      ok = ta.value.length >= 10;
+    }
+    if (ticketChoice === null) ok = false;
+    if (ticketChoice === 'cancel' && !radioPicked) ok = false;
+    document.getElementById('btn-submit').classList.toggle('active', ok);
+  }
+
+  function trySubmit() {
+    if (!document.getElementById('btn-submit').classList.contains('active')) return;
+    if (ticketChoice === 'cancel') {
+      showScenario(3, document.querySelectorAll('.tab-btn')[2]);
+    } else {
+      showToast();
+    }
+  }
+
+  function showToast() {
+    document.getElementById('toast').classList.remove('hidden');
+    setTimeout(function(){ document.getElementById('toast').classList.add('hidden'); }, 4000);
+  }
+</script>
+</body>
+</html>
